@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}WorkLog{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="/media/admin/css/base.css" /> 
+<link rel="stylesheet" type="text/css" href="/media/admin/css/forms.css" /> 
+
+<script type="text/javascript" src="/admin/jsi18n/"></script>
+<script type="text/javascript" src="/media/admin/js/core.js"></script>
+
+{{ form.media }}
+
+{% endblock %}
+
+{% block content %}
+    {% if form %}
+        <form action="/worklog/add" method="post">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit" value="Submit" />
+        </form>
+    {% else %}
+        <p>This application is broken somehow...</p>
+    {% endif %}
+
+{% endblock %}

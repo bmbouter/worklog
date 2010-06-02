@@ -1,0 +1,21 @@
+{% if items %}
+    <table border="1">
+        <tr>
+            <th>User</th>
+            <th>Date</th>
+            <th>Hours</th>
+            <th>Task</th>
+        </tr>
+        {% for item in items %}
+            <tr>
+                <td>{{ item.user }}</td>
+                <td>{{ item.date }}</td>
+                <td>{{ item.hours }}</td>
+                <td>{{ item.text }}</td>
+            </tr>
+        {% endfor %}
+    </table> 
+
+{% else %}
+    <p>No work accomplished ... this is terrible!</p>
+{% endif %}
