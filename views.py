@@ -4,33 +4,27 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 from worklog.forms import WorkItemForm
 from worklog.models import WorkItem
 
-import core
-log = core.log.getLogger()
+import opus.lib.log
+log = opus.lib.log.getLogger()
 
 @login_required
 def createWorkItem(request):
     log.warning(request.user)
     if request.method == 'POST': # If the form has been submitted...
         form = WorkItemForm(request.POST, instance=WorkItem(user=request.user))
-        #form = WorkItemForm(request.POST) # A form bound to the POST data
-        #new_work = form.save(commit=False)
-        #new_work.user = request.user
-        #form = WorkItemForm(instance=new_work) # The username in the form
-        #return HttpResponse(form.user)
         if form.is_valid(): # All validation rules pass
             # Process the data in form.cleaned_data
             form.save()
-            return HttpResponseRedirect('/worklog/add') # Redirect after POST
+            return HttpResponseRedirect('/worklog/view/%s/today/' % request.user.username) # Redirect after POST
     else:
-        f = WorkItemForm() # An unbound form
-        new_work = f.save(commit=False)
-        new_work.user = request.user
-        form = WorkItemForm(instance=new_work) # The username in the form
+        form = WorkItemForm() # An unbound form
 
+    #return HttpResponse('form = %s' % form)
     return render_to_response('worklog/workform.html',
                             {'form': form},
                             context_instance=RequestContext(request))
@@ -40,17 +34,18 @@ def thanks(request):
     return HttpResponse('Thanks for the order!')
 '''
 
-def viewWork(request, date=None, user=None):
-    log.warning('user = %s, and date = %s' % (user,date))
-    if user:
-        items = WorkItem.objects.filter(user=user)
-        log.error(items)
-        return HttpResponse('here')
+def viewWork(request, date=None, username=None):
+    log.warning('username = %s, and date = %s' % (username,date))
+    if username:
+        user_model = User.objects.filter(username=username)
+        if user_model:
+            items = WorkItem.objects.filter(user=user_model[0].pk)
+        else:
+            return HttpResponse('Username %s is invalid' % username)
     else:
-        return HttpResponse('Ahere')
         items = WorkItem.objects.all()
+    if not items:
+        return HttpResponse('The user %s has done no work' % username)
     if date:
-        return HttpResponse('Bhere')
         items = items.filter(date=date)
-    return HttpResponse(items)
     return render_to_response('worklog/viewwork.html', {'items': items})

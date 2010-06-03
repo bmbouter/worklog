@@ -5,7 +5,4 @@ from worklog.models import WorkItem
 class WorkItemForm(ModelForm):
     class Meta:
         model = WorkItem
-        widgets = {
-            'user': Select(attrs={'disabled': 'disabled'}),
-        }
-
+        exclude = ['user']
