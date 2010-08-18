@@ -1,5 +1,5 @@
 {% if form %}
-    <form action="/worklog/add/" method="post">
+    <form action="/worklog/add/{{actsuffix}}" method="post">
         {% csrf_token %}
         {{ form }}
         <input type="submit" value="Submit" />

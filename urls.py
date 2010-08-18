@@ -4,6 +4,7 @@ from django.conf.urls.defaults import *
 
 urlpatterns = patterns('worklog',
     (r'^add/$', 'views.createWorkItem'),
+    (r'^add/reminder_(?P<reminder_id>[0-9a-f\-]{36})/$','views.createWorkItemReminder'),
     #(r'^$', 'views.placeOrder'),
     #(r'^thanks$', 'views.thanks'),
     (r'^view/$', 'views.viewWork'),
