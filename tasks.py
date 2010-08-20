@@ -35,8 +35,8 @@ def save_reminder_record(user,id, date):
     reminder = WorkLogReminder(reminder_id=id, user=user, date=date)
     reminder.save()
 
-@periodic_task(run_every=crontab(hour=18, minute=0))
-#@task
+# periodic task: M-F at 6:00pm
+@periodic_task(run_every=crontab(hour=18, minute=0, day_of_week=[1,2,3,4,5]))
 def send_reminder_emails():
     datatuples = ()
     date = datetime.date.today()-datetime.timedelta(days=1)
