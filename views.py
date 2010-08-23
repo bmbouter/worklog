@@ -18,7 +18,7 @@ no_reminder_msg = 'There is no stored reminder with the given id.  Perhaps that 
 def createWorkItem(request):
     #log.warning(request.user)
     if request.method == 'POST': # If the form has been submitted...
-        form = WorkItemForm(request.POST, instance=WorkItem(user=request.user, date=date))
+        form = WorkItemForm(request.POST, instance=WorkItem(user=request.user, date=datetime.date.today()))
         if form.is_valid(): # All validation rules pass
             # Process the data in form.cleaned_data
             form.save()
