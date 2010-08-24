@@ -1,5 +1,9 @@
 {% if form %}
-    <form action="/worklog/add/{{actsuffix}}" method="post">
+  {% if reminder_id %}
+    <form action="/worklog/add/reminder_{{reminder_id}}/" method="post">
+  {% else %}
+    <form action="/worklog/add/" method="post">
+  {% endif %}
         {% csrf_token %}
         {{ form }}
         <input type="submit" value="Submit" />

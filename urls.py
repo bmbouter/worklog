@@ -3,8 +3,8 @@ import datetime
 from django.conf.urls.defaults import *
 
 urlpatterns = patterns('worklog',
-    (r'^add/$', 'views.createWorkItem'),
-    (r'^add/reminder_(?P<reminder_id>[0-9a-f\-]{36})/$','views.createWorkItemReminder'),
+    (r'^add/$', 'views.createWorkItem', {'reminder_id': None}),
+    (r'^add/reminder_(?P<reminder_id>[0-9a-f\-]{36})/$','views.createWorkItem'),
     #(r'^$', 'views.placeOrder'),
     #(r'^thanks$', 'views.thanks'),
     (r'^view/$', 'views.viewWork'),

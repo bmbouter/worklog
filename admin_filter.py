@@ -23,14 +23,6 @@ class YearMonthFilterSpec(FilterSpec):
         
         self.field_generic = '%s__' % self.field.name
         self.date_params = dict([(k, v) for k, v in params.items() if k.startswith(self.field_generic)])
-        #self.lookup_kwarg = '%s__year_month'%f.name
-        #self.lookup_val = request.GET.get(self.lookup_kwarg, None)
-        
-        #values_list = model.objects.values_list(f.name, flat=True)
-        #self.lookup_choices = list(set(
-        #    val.replace(day=1) for val in values_list if isinstance(val, datetime.date)
-        #    ))
-        #self.lookup_choices.sort(reverse=True)
         
         values_list = model.objects.values_list(f.name, flat=True)
         unique_dates = list(set(
@@ -55,13 +47,10 @@ class YearMonthFilterSpec(FilterSpec):
 class UserFilterSpec(ChoicesFilterSpec):
     def __init__(self, f, request, params, model, model_admin):
         super(UserFilterSpec, self).__init__(f, request, params, model, model_admin)
-        #self.lookup_kwarg = '%s__exact' % f.name
-        #self.lookup_val = request.GET.get(self.lookup_kwarg, None)
 
         values_list = model.objects.values_list(f.name, flat=True)
         
         self.lookup_choices = list((x.pk,x.username) for x in User.objects.all())
-        #self.lookup_choices = list(set((val,Users.objects.filter for val in values_list if val))
         self.lookup_choices.sort(key=operator.itemgetter(0))
 
     def choices(self, cl):
