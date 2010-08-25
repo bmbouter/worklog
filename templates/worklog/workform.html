@@ -6,7 +6,8 @@
   {% endif %}
         {% csrf_token %}
         {{ form }}
-        <input type="submit" value="Submit" />
+        <input type="submit" name="submit_and_exit" value="Submit and Exit" />
+        <input type="submit" name="submit_and_add_another" value="Submit and Add Another" />
     </form>
 {% else %}
     <p>This application is broken somehow...</p>

@@ -15,9 +15,8 @@ import uuid
 
 email_msg = """\
 Our records show you did not submit a work log today.  You may use the 
-following URL to submit your log for today, even at a later date.
-
-<a href="%(url)s">Submit a work log</a>
+following URL to submit today's log, but you must do so before it expires on 
+%(expiredate)s.
 
 URL: %(url)s
 
@@ -27,7 +26,9 @@ submit_log_url = "http://opus-dev.cnl.ncsu.edu:7979/worklog/add/reminder_%s"
 
 def compose_reminder_email(email_address, id):
     subj = "Remember to Submit Today's Worklog"
-    msg = email_msg%{'url': submit_log_url%id}
+    expire_days = app_settings.EMAIL_REMINDERS_EXPIRE_AFTER
+    expiredate = datetime.date.today() + datetime.timedelta(days=expire_days)
+    msg = email_msg%{'url': submit_log_url%id, 'expiredate': str(expiredate)}
     from_email = ""
     recipients = [email_address]
 

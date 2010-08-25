@@ -48,10 +48,13 @@ def createWorkItem(request, reminder_id=None):
             job = form.cleaned_data['job']
             wi = WorkItem(user=request.user, date=date, hours=hours, text=text, job=job)
             wi.save()
-            if date==datetime.date.today():
-                return HttpResponseRedirect('/worklog/view/%s/today/' % request.user.username) # Redirect after POST
+            if 'submit_and_add_another' in request.POST:
+                return HttpResponseRedirect(request.path)
             else:
-                return HttpResponseRedirect('/worklog/view/%s/%s/' % ( request.user.username, date))
+                if date==datetime.date.today():
+                    return HttpResponseRedirect('/worklog/view/%s/today/' % request.user.username) # Redirect after POST
+                else:
+                    return HttpResponseRedirect('/worklog/view/%s/%s/' % ( request.user.username, date))
             
 #        form = WorkItemForm(request.POST, instance=WorkItem(user=request.user, date=datetime.date.today()))
 #        if form.is_valid(): # All validation rules pass
