@@ -1,5 +1,6 @@
 import unittest
 import datetime
+import calendar
 import uuid
 
 from django.test import TestCase
@@ -14,6 +15,7 @@ import app_settings
 class Worklog_TestCaseBase(TestCase):
     def setUp(self):
         today = datetime.date.today()
+        self.today = today
         last_week =     today - datetime.timedelta(days=7)
         last_2week =    today - datetime.timedelta(days=14)
         next_week =     today + datetime.timedelta(days=7)
@@ -43,6 +45,9 @@ class Worklog_TestCaseBase(TestCase):
         WorkLogReminder.objects.all().delete()
         # Delete all test users.
         self.user.delete()
+        
+def get_month_end(d):
+    return d.replace(day=calendar.monthrange(d.year, d.month)[1])
 
 class CreateWorkItem_TestCase(Worklog_TestCaseBase):
         
@@ -70,7 +75,11 @@ class CreateWorkItem_TestCase(Worklog_TestCaseBase):
         data = {'submit_and_exit':'','hours':'2', 'text':'description', 'job':job.pk}
         response = self.client.post('/worklog/add/', data)
         
-        self.assertRedirects(response, '/worklog/view/master/today/')
+        datemin = self.today.replace(day=1)
+        datemax = get_month_end(self.today)
+        
+        redirurl = '/worklog/view/?user={0}&datemin={1}&datemax={2}'.format(self.user.pk,datemin,datemax)
+        self.assertRedirects(response, redirurl)
         
         items = WorkItem.objects.all()
         self.assertEquals(items.count(),1)
@@ -109,6 +118,7 @@ class CreateWorkItem_TestCase(Worklog_TestCaseBase):
         
         self.client.login(username='master', password='password')
         response = self.client.get('/worklog/add/reminder_{0}/'.format(id))
+        
         self.assertEquals(response.context['reminder_id'],id)
         
         qs = response.context['form'].fields["job"].queryset
@@ -134,7 +144,11 @@ class CreateWorkItem_TestCase(Worklog_TestCaseBase):
         data = {'submit_and_exit':'','hours':'2', 'text':'description', 'job':job.pk}
         response = self.client.post('/worklog/add/reminder_{0}/'.format(id), data)
         
-        self.assertRedirects(response, '/worklog/view/master/{0}/'.format(self.last_week))
+        datemin = self.last_week.replace(day=1)
+        datemax = get_month_end(self.last_week)
+        
+        redirurl = '/worklog/view/?user={0}&datemin={1}&datemax={2}'.format(self.user.pk,datemin,datemax)
+        self.assertRedirects(response, redirurl)
         
         items = WorkItem.objects.all()
         self.assertEquals(items.count(),1)

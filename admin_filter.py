@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 import datetime
 import operator
 
+# used in YearMonthFilterSpec.__init__
 def create_yearmonth_link(d,fieldname):
     """d = a datetime.date object """
     title = smart_unicode(d.strftime('%Y %B'))

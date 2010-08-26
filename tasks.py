@@ -9,10 +9,6 @@ import app_settings
 import datetime
 import uuid
 
-#@task
-#def add(x,y):
-#    return x+y
-
 email_msg = """\
 Our records show you did not submit a work log today.  You may use the 
 following URL to submit today's log, but you must do so before it expires on 
@@ -42,17 +38,16 @@ def save_reminder_record(user,id, date):
 send_hour = app_settings.SEND_REMINDERS_HOUR
 send_days = app_settings.SEND_REMINDERS_DAYSOFWEEK
 
-# periodic task: M-F at 6:00pm
+# periodic task -- by default: M-F at 6:00pm
 @periodic_task(run_every=crontab(hour=send_hour, minute=0, day_of_week=send_days))
 def send_reminder_emails():
-    datatuples = ()
-    #date = datetime.date.today()-datetime.timedelta(days=1)
+    datatuples = ()  # one tuple for each email to send... contains subj, msg, recipients, etc...
     date = datetime.date.today()
     for user in User.objects.all():
-    #for user in User.objects.filter(username='dpwhite2'):
+        if not user.email: continue
+        # get all workitems for 'user' that were submitted today
         items = WorkItem.objects.filter(user=user.pk,date=date)
         if not items:
-        #if items:
             # no work item today...
             id = str(uuid.uuid4())
             save_reminder_record(user,id,date)

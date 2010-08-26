@@ -1,21 +1,68 @@
-{% if items %}
-    <table border="1">
-        <tr>
-            <th>User</th>
-            <th>Date</th>
-            <th>Hours</th>
-            <th>Task</th>
-        </tr>
-        {% for item in items %}
-            <tr>
-                <td>{{ item.user }}</td>
-                <td>{{ item.date }}</td>
-                <td>{{ item.hours }}</td>
-                <td>{{ item.text }}</td>
-            </tr>
-        {% endfor %}
-    </table> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-us" xml:lang="en-us" >
 
-{% else %}
+<head>
+<title></title>
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar" style="float: right;">
+  <ul>
+    <li><a href="?">all</a></li>
+  </ul>
+  <!-- Users -->
+  <h3>By User</h3>
+  <ul>
+    {% for link in userlinks %}
+    <li><a href="?{{ link.0 }}">{{ link.1 }}</a></li>
+    {% endfor %}
+  </ul>
+  <!-- Dates -->
+  <h3>By Date</h3>
+  <ul>
+    {% for link in yearmonthlinks %}
+    <li><a href="?{{ link.0 }}">{{ link.1 }}</a></li>
+    {% endfor %}
+  </ul>
+  <!-- Jobs -->
+  <h3>By Job</h3>
+  <ul>
+    {% for link in joblinks %}
+    <li><a href="?{{ link.0 }}">{{ link.1 }}</a></li>
+    {% endfor %}
+  </ul>
+</div>
+
+<!-- Content -->
+<div class="content">
+  {% if items %}
+  <table border="1">
+    <tr>
+      <th>User</th>
+      <th>Date</th>
+      <th>Hours</th>
+      <th>Job</th>
+      <th>Task</th>
+    </tr>
+    
+    {% for item in items %}
+      <tr>
+        <td>{{ item.user }}</td>
+        <td>{{ item.date }}</td>
+        <td>{{ item.hours }}</td>
+        <td>{{ item.job }}</td>
+        <td>{{ item.text }}</td>
+      </tr>
+    {% endfor %}
+    
+  </table>
+  {% else %}
     <p>No work accomplished ... this is terrible!</p>
-{% endif %}
+  {% endif %}
+</div>
+
+</body>
+
+</html>

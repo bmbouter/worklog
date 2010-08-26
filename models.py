@@ -7,7 +7,6 @@ import worklog.admin_filter
 
 class Job(models.Model):
     name = models.CharField(max_length=256)
-    #is_open = models.BooleanField(default=False)
     # end_date is inclusive, so the duration of a Job is end_date-start_date + 1 day
     # if end_date==None, the Job is still open
     open_date = models.DateField()
@@ -21,15 +20,14 @@ class Job(models.Model):
 class WorkItem(models.Model):
     user = models.ForeignKey(User)
     date = models.DateField()
-    #date = models.DateField(auto_now_add=True)
     hours = models.IntegerField()
     text = models.TextField()
     job = models.ForeignKey(Job)
-
+    
+    # see worklog.admin_filter
     date.year_month_filter = True
     user.user_filter = True
-    #class Admin:
-    #    search_fields  = ('user', )
+    
     def __str__(self):
         return '%s on %s work %d hours on %s' % (self.user, self.date, self.hours, self.text)
 

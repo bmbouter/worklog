@@ -5,27 +5,24 @@ from django.http import HttpResponse
 import csv
 
 from worklog.models import WorkItem, Job, WorkLogReminder
-#import worklog.admin_filter
 
-def export_csv(modeladmin, request, queryset):
-    pass
-export_csv.short_description = "Save the selected Work Items to a CSV file."
 
 class WorkItemAdmin(admin.ModelAdmin):
     list_display = ('user','date','hours','text','job')
     list_filter = ('user','date','job')
     
     def changelist_view(self, request, extra_context=None):
+        # Look for 'export_as_csv' in the HTTP Request header.  If it is found, 
+        # we export CSV.  If it is not found, defer to the super class.
         if 'export_as_csv' in request.POST:
-            response = HttpResponse(mimetype='text/csv')
-            response['Content-Disposition'] = 'attachment; filename=somefilename.csv'
-            
             ChangeList = self.get_changelist(request)
             
+            # see django/contrib/admin/views/main.py  for ChangeList class.
             cl = ChangeList(request, self.model, self.list_display, self.list_display_links, self.list_filter,
                 self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self.list_editable, self) 
                 
             rows = []
+            # Iterate through currently displayed items.
             for item in cl.query_set:
                 row = list()
                 row.append(str(item.user.pk))
@@ -40,6 +37,9 @@ class WorkItemAdmin(admin.ModelAdmin):
                 row.append(item.text)
                 rows.append(row)
             
+            response = HttpResponse(mimetype='text/csv')
+            response['Content-Disposition'] = 'attachment; filename=somefilename.csv'
+            
             writer = csv.writer(response)
             for row in rows:
                 writer.writerow(row)
@@ -51,12 +51,8 @@ class WorkItemAdmin(admin.ModelAdmin):
 
 class JobAdmin(admin.ModelAdmin):
     list_display = ('name','open_date','close_date')
-    #list_filter = ('',)
 
 admin.site.register(WorkItem, WorkItemAdmin)
 admin.site.register(Job, JobAdmin)
 admin.site.register(WorkLogReminder)
-
-#class UserAdmin(admin.ModelAdmin):
-#    list_filter = ()
 
