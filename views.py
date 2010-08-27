@@ -10,9 +10,6 @@ from django.contrib.auth.models import User
 from worklog.forms import WorkItemForm
 from worklog.models import WorkItem, WorkLogReminder, Job
 
-#import opus.lib.log
-#log = opus.lib.log.getLogger()
-
 no_reminder_msg = 'There is no stored reminder with the given id.  Perhaps that reminder was already used?'
 
 class BadReminderId(Exception):
@@ -29,17 +26,16 @@ def validate_reminder_id(request, reminder_id):
         raise BadReminderId('The current user name does not match the user saved with the given id.')
     date = rems[0].date
     return (rems[0],date)
-    
-    #actsuffix = 'reminder_%s/'%(reminder_id,)
 
 
 @login_required
 def createWorkItem(request, reminder_id=None):
-    #log.warning(request.user)
     try:
         reminder,date = validate_reminder_id(request, reminder_id)
     except BadReminderId as e:
-        return HttpResponse(e.args)
+        resp = HttpResponse(e.args)
+        resp['Worklog-UnableToCreateItem'] = '' # for testing purposes
+        return resp
     
     if request.method == 'POST': # If the form has been submitted...
         form = WorkItemForm(request.POST, reminder=reminder)
@@ -55,13 +51,10 @@ def createWorkItem(request, reminder_id=None):
                 # redisplay workitem form so another item may be added
                 return HttpResponseRedirect(request.path)
             else:
-                a,b = make_month_range(date.replace(day=1))
-                dq = 'datemin={0}&datemax={1}'.format(a,b)
-                return HttpResponseRedirect('/worklog/view/?user=%d&%s' % (request.user.pk,dq))
-                # if date==datetime.date.today():
-                    # return HttpResponseRedirect('/worklog/view/?user=%d' % request.user.pk) # Redirect after POST
-                # else:
-                    # return HttpResponseRedirect('/worklog/view/%s/%s/' % ( request.user.username, date))
+                if date==datetime.date.today():
+                    return HttpResponseRedirect('/worklog/view/%s/today/' % request.user.username) # Redirect after POST
+                else:
+                    return HttpResponseRedirect('/worklog/view/%s/%s_%s/' % ( request.user.username, date, date))
     else:
         form = WorkItemForm(reminder=reminder) # An unbound form
 
@@ -72,54 +65,110 @@ def createWorkItem(request, reminder_id=None):
 def make_month_range(d):
     # take a date, return a tuple of two dates.  The day in the second date is the last day in that month.
     return (d, d.replace(day=calendar.monthrange(d.year, d.month)[1]))
+    
+
+    
+class WorkViewMenu(object):
+    class MenuItem(object):
+        def __init__(self, querystring, name):
+            self.querystring = querystring
+            self.name = name
+    class SubMenu(object):
+        def __init__(self, name, items=None):
+            """ name:  may be the empty string
+            """
+            self.name = name
+            # special handling if 'items' contains tuples
+            assert items is None or isinstance(items, list)
+            if items and not isinstance(items[0], WorkViewMenu.MenuItem):
+                items = list(WorkViewMenu.MenuItem(q,n) for q,n in items)
+            self.items = items  if items else  []
+            assert all(isinstance(item,WorkViewMenu.MenuItem) for item in self.items)
+                
+        def __iter__(self):
+            return self.items.__iter__()
+    def __init__(self):
+        self.submenus = []
+    def __iter__(self):
+        return self.submenus.__iter__()
+    
 
 class WorkViewer(object):
-    selected_userid = None
-    selected_datemin = None
-    selected_datemax = None
-    selected_jobid = None
+    keys = ["user","job","datemin","datemax"]
     
-    def __init__(self, request):
+    def __init__(self, request, username, datemin, datemax):
+        userid=None
+        # convert username to userid
+        if username:
+            qs = User.objects.filter(username=username)
+            if qs.exists():
+                userid = qs[0].pk
+        self.selected = {}
         # raw HTTP request info
-        self.selected_userid = request.GET.get("user",None)
-        self.selected_jobid = request.GET.get("job",None)
-        self.selected_datemin = request.GET.get("datemin",None)
-        self.selected_datemax = request.GET.get("datemax",None)
+        for key in self.keys:
+            if key in request.GET:   self.selected[key] = request.GET[key]
+        # also process arguments
+        for key,val in [("user",userid),("datemin",datemin),("datemax",datemax)]:
+            if val is not None: self.selected[key] = val
+            
+        # handle invalid ids:
+        if "user" in self.selected: 
+            if not User.objects.filter(pk=self.selected["user"]).exists():
+                del self.selected["user"]
+        if "job" in self.selected: 
+            if not Job.objects.filter(pk=self.selected["job"]).exists():
+                del self.selected["job"]
         
         self.current_queries = {}
         # Save current queries to use when creating links.
-        if self.selected_jobid is not None:
-            self.current_queries["job"] = "job={0}".format(self.selected_jobid)
-        if self.selected_userid is not None:
-            self.current_queries["user"] = "user={0}".format(self.selected_userid)
-        if self.selected_datemin is not None:
-            self.current_queries["datemin"] = "datemin={0}".format(self.selected_datemin)
-        if self.selected_datemax is not None:
-            self.current_queries["datemax"] = "datemax={0}".format(self.selected_datemax)
+        for key,val in self.selected.iteritems():
+            self.current_queries[key] = "{0}={1}".format(key,val)
             
+        self.menu = WorkViewMenu()
+        allsubmenu = WorkViewMenu.SubMenu("",[WorkViewMenu.MenuItem("","all")])
+        self.menu.submenus.append(allsubmenu)
+        
         # build the links
         self.build_user_links(request)
         self.build_job_links(request)
         self.build_yearmonth_links(request)
+        
+        # query info... for display in the web page
+        self.view_filters = []
+        if "user" in self.selected:
+            val = self.selected["user"]
+            self.view_filters.append(('User',"{0}".format(User.objects.filter(pk=val)[0].username)))
+        if "job" in self.selected:
+            val = self.selected["job"]
+            self.view_filters.append(("Job", "{0}".format(Job.objects.filter(pk=val)[0].name)))
+        if "datemin" in self.selected:
+            val = self.selected["datemin"]
+            self.view_filters.append(("Date minimum", "{0}".format(val)))
+        if "datemax" in self.selected:
+            val = self.selected["datemax"]
+            self.view_filters.append(("Date maximum", "{0}".format(val)))
+            
             
     def filter_items(self, items):
-        if self.selected_userid is not None:
-            items = items.filter(user__pk=self.selected_userid)
-        if self.selected_jobid is not None:
-            items = items.filter(job__pk=self.selected_jobid)
-        if self.selected_datemin:
-            items = items.filter(date__gte=self.selected_datemin)
-        if self.selected_datemax:
-            items = items.filter(date__lte=self.selected_datemax)
+        if "user" in self.selected:
+            items = items.filter(user__pk=self.selected["user"])
+        if "job" in self.selected:
+            items = items.filter(job__pk=self.selected["job"])
+        if "datemin" in self.selected:
+            items = items.filter(date__gte=self.selected["datemin"])
+        if "datemax" in self.selected:
+            items = items.filter(date__lte=self.selected["datemax"])
         return items
+        
         
     def build_user_links(self, request):
         # The basequery includes all current queries except for 'user'
         basequery = '&'.join(v for k,v in self.current_queries.iteritems() if k!="user")
         alllink = (basequery,'all users')
         if basequery: basequery+='&'
-        self.userlinks = list(("{1}user={0}".format(user.pk,basequery),user.username) for user in User.objects.all())
-        self.userlinks = [alllink] + self.userlinks
+        links = list(("{1}user={0}".format(user.pk,basequery),user.username) for user in User.objects.all())
+        links = [alllink] + links
+        self.menu.submenus.append(WorkViewMenu.SubMenu("User",links))
         
     def build_yearmonth_links(self, request):
         basequery = '&'.join(v for k,v in self.current_queries.iteritems() if k!="datemin" and k!="datemax")
@@ -134,55 +183,56 @@ class WorkViewer(object):
             ))
         # Sort so most recent date is at the top.
         unique_dates.sort(reverse=True)
-        # 
         ranges = list(make_month_range(x) for x in unique_dates)
         
-        self.yearmonthlinks = list(("{2}datemin={0}&datemax={1}".format(a,b,basequery),a.strftime('%Y %B')) for a,b in ranges)
-        self.yearmonthlinks = [alllink] + self.yearmonthlinks
+        links = list(("{2}datemin={0}&datemax={1}".format(a,b,basequery),a.strftime('%Y %B')) for a,b in ranges)
+        links = [alllink] + links
+        self.menu.submenus.append(WorkViewMenu.SubMenu("Date",links))
         
     def build_job_links(self, request):
         basequery = '&'.join(v for k,v in self.current_queries.iteritems() if k!="job")
         alllink = (basequery,'all jobs')
         if basequery: basequery+='&'
-        self.joblinks = list(("{1}job={0}".format(job.pk,basequery),job.name) for job in Job.objects.all())
-        self.joblinks = [alllink] + self.joblinks
-    
+        links = list(("{1}job={0}".format(job.pk,basequery),job.name) for job in Job.objects.all())
+        links = [alllink] + links
+        self.menu.submenus.append(WorkViewMenu.SubMenu("Job",links))
     
 
-def viewWork(request):
-    #log.warning('username = %s, and date = %s' % (username,date))
-    
-    viewer = WorkViewer(request)
+def viewWork(request, username=None, datemin=None, datemax=None):
+    viewer = WorkViewer(request,username,datemin,datemax)
     
     items = WorkItem.objects.all()
     items = viewer.filter_items(items)
-        
+    
+    # menulink_base must either be blank, or include a trailing slash.
+    # menulink_base is the part of the URL in the menu links that will precede the '?'
+    menulink_base = ''
+    if username is not None: menulink_base += '../'
+    if datemin or datemax: menulink_base += '../'
+    
+    # 'columns' determines the layout of the view table
+    columns = [
+        # key, title
+        ('user','User'),
+        ('date','Date'),
+        ('hours','Hours'),
+        ('job','Job'),
+        ('text','Task'),
+        ]
+    
+    def itercolumns(item):
+        for key,title in columns:
+            yield getattr(item,key)
+    
+    rawitems = list(tuple(itercolumns(item)) for item in items)
+    
     return render_to_response('worklog/viewwork.html', 
-            {'items': items,
-             'joblinks': viewer.joblinks,
-             'userlinks': viewer.userlinks,
-             'yearmonthlinks': viewer.yearmonthlinks,
+            {'items': rawitems,
+             'filtermenu': viewer.menu,
+             'menulink_base': menulink_base,
+             'column_names': list(t for k,t in columns),
+             'current_filters': viewer.view_filters,
             }
         )
     
-'''
 
-def thanks(request):
-    return HttpResponse('Thanks for the order!')
-'''
-
-def old_viewWork(request, date=None, username=None):
-    #log.warning('username = %s, and date = %s' % (username,date))
-    if username:
-        user_model = User.objects.filter(username=username)
-        if user_model:
-            items = WorkItem.objects.filter(user=user_model[0].pk)
-        else:
-            return HttpResponse('Username %s is invalid' % username)
-    else:
-        items = WorkItem.objects.all()
-    if not items:
-        return HttpResponse('The user %s has done no work' % username)
-    if date:
-        items = items.filter(date=date)
-    return render_to_response('worklog/viewwork.html', {'items': items})

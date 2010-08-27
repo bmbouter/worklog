@@ -9,58 +9,53 @@
 
 <!-- Sidebar -->
 <div class="sidebar" style="float: right;">
-  <ul>
-    <li><a href="?">all</a></li>
-  </ul>
-  <!-- Users -->
-  <h3>By User</h3>
-  <ul>
-    {% for link in userlinks %}
-    <li><a href="?{{ link.0 }}">{{ link.1 }}</a></li>
+  {% for submenu in filtermenu %}
+    {% if submenu.name %}<h3>By {{ submenu.name }}</h3>{% endif %}
+    <ul>
+    {% for item in submenu.items %}
+      <li><a href="{{ menulink_base }}?{{ item.querystring }}">{{ item.name }}</a></li>
     {% endfor %}
-  </ul>
-  <!-- Dates -->
-  <h3>By Date</h3>
-  <ul>
-    {% for link in yearmonthlinks %}
-    <li><a href="?{{ link.0 }}">{{ link.1 }}</a></li>
-    {% endfor %}
-  </ul>
-  <!-- Jobs -->
-  <h3>By Job</h3>
-  <ul>
-    {% for link in joblinks %}
-    <li><a href="?{{ link.0 }}">{{ link.1 }}</a></li>
-    {% endfor %}
-  </ul>
+    </ul>
+  {% endfor %}
 </div>
 
 <!-- Content -->
 <div class="content">
   {% if items %}
-  <table border="1">
-    <tr>
-      <th>User</th>
-      <th>Date</th>
-      <th>Hours</th>
-      <th>Job</th>
-      <th>Task</th>
-    </tr>
-    
-    {% for item in items %}
+  
+    <!-- Work item table -->
+    <table border="1">
       <tr>
-        <td>{{ item.user }}</td>
-        <td>{{ item.date }}</td>
-        <td>{{ item.hours }}</td>
-        <td>{{ item.job }}</td>
-        <td>{{ item.text }}</td>
+      {% for title in column_names %}
+        <th>{{ title }}</th>
+      {% endfor %}
       </tr>
-    {% endfor %}
-    
-  </table>
+      
+      {% for item in items %}
+        <tr>
+          {% for field in item %}
+            <td>{{ field }}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </table>
+  
   {% else %}
-    <p>No work accomplished ... this is terrible!</p>
+    <p>No work accomplished... this is terrible!</p>
   {% endif %}
+  
+  <!-- Contents of the current query -->
+  <p style="margin-bottom: 0em;">Current query:</p>
+  <table style="margin-left: 3em;">
+    {% if current_filters %}
+      {% for key,val in current_filters %}
+        <tr><td>{{ key }}:</td><td>{{ val }}</td></tr>
+      {% endfor %}
+    {% else %}
+      <tr><td>Showing all work items.</td></tr>
+    {% endif %}
+  </table>
+  
 </div>
 
 </body>
