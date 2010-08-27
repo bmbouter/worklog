@@ -279,21 +279,37 @@ class ViewWork_TestCase(Worklog_TestCaseBase):
             self.assertEquals(response.context['menulink_base'],'')
             self.assertEquals(len(response.context['current_filters']),0)
     
+    def test_badDate(self):
+        with self.scoped_login(username='master', password='password'):
+        
+            response = self.client.get('/worklog/view/9876-22-33_/')
+            self.assertEquals(len(response.context['items']),7)
+            self.assertNotEquals(response.context['menulink_base'],'')
+            self.assertEquals(len(response.context['current_filters']),1)
+    
     def test_badUser(self):
         with self.scoped_login(username='master', password='password'):
         
             response = self.client.get('/worklog/view/?user=999')
-            self.assertEquals(len(response.context['items']),7)
+            self.assertEquals(len(response.context['items']),0)
             self.assertEquals(response.context['menulink_base'],'')
-            self.assertEquals(len(response.context['current_filters']),0)
+            self.assertEquals(len(response.context['current_filters']),1)
+    
+    def test_badUser2(self):
+        with self.scoped_login(username='master', password='password'):
+        
+            response = self.client.get('/worklog/view/badusername/')
+            self.assertEquals(len(response.context['items']),0)
+            self.assertNotEquals(response.context['menulink_base'],'')
+            self.assertEquals(len(response.context['current_filters']),1)
     
     def test_badJob(self):
         with self.scoped_login(username='master', password='password'):
         
             response = self.client.get('/worklog/view/?job=999')
-            self.assertEquals(len(response.context['items']),7)
+            self.assertEquals(len(response.context['items']),0)
             self.assertEquals(response.context['menulink_base'],'')
-            self.assertEquals(len(response.context['current_filters']),0)
+            self.assertEquals(len(response.context['current_filters']),1)
     
     def test_today(self):
         with self.scoped_login(username='master', password='password'):

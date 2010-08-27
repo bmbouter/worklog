@@ -1,5 +1,6 @@
 import datetime
 import calendar
+import time
 
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -78,8 +79,8 @@ class WorkViewMenu(object):
             """ name:  may be the empty string
             """
             self.name = name
-            # special handling if 'items' contains tuples
             assert items is None or isinstance(items, list)
+            # special handling if 'items' contains tuples
             if items and not isinstance(items[0], WorkViewMenu.MenuItem):
                 items = list(WorkViewMenu.MenuItem(q,n) for q,n in items)
             self.items = items  if items else  []
@@ -91,77 +92,114 @@ class WorkViewMenu(object):
         self.submenus = []
     def __iter__(self):
         return self.submenus.__iter__()
+        
+        
+class WorkViewerFilter(object):
+    def __init__(self, key, title, filter_lookup, query_fmtstring="{0}={1}", model=None, error_name="ERROR", name_attr=None):
+        self.key = key
+        self.title = title
+        self.filter_lookup = filter_lookup
+        self.query_fmtstring = query_fmtstring
+        self.model = model
+        self.value = None
+        #self.error_value = None
+        self.error_name = error_name
+        self.display_name = self.error_name
+        self.name_attr = name_attr
+    
+    def set_value(self, value):
+        # validate?
+        self.value = self.validate(value)
+        
+    def validate(self, value):
+        return value
+        
+    def get_query_string(self):
+        return "{0}={1}".format(self.key,self.value)  if self.value is not None else  ""
+        
+    def get_query_info(self):
+        if self.value is not None:
+            if self.model:
+                qs = self.model.objects.filter(pk=self.value)
+                name = getattr(qs[0], self.name_attr)  if qs.exists() else  self.error_name
+            else:
+                name = self.value
+            return (self.title,"{0}".format(name))
+        return None
+            
+    def apply_filter(self, items):
+        if self.value is not None:
+            items = items.filter(**{self.filter_lookup: self.value})
+        return items
+        
+class WorkViewerDateFilter(WorkViewerFilter):
+    def __init__(self, key, title, filter_lookup, error_value):
+        super(WorkViewerDateFilter, self).__init__(key, title, filter_lookup)
+        self.error_value = error_value  # is set in case of validation error
+    def validate(self, value):
+        if not isinstance(value, datetime.date):
+            try:
+                return datetime.date(*time.strptime(value,"%Y-%m-%d")[:3])
+            except ValueError:
+                return self.error_value
+        return value
     
 
 class WorkViewer(object):
     keys = ["user","job","datemin","datemax"]
     
     def __init__(self, request, username, datemin, datemax):
+        self.filters = {}
+        self.filters["user"] = WorkViewerFilter("user","User","user",model=User,error_name="<unknown_user>",name_attr="username")
+        self.filters["job"] = WorkViewerFilter("job","Job","job",model=Job,error_name="<unknown_job>",name_attr="name")
+        self.filters["datemin"] = WorkViewerDateFilter("datemin","Date minimum","date__gte",error_value=datetime.date.min)
+        self.filters["datemax"] = WorkViewerDateFilter("datemax","Date maximum","date__lte",error_value=datetime.date.max)
+        
         userid=None
         # convert username to userid
         if username:
             qs = User.objects.filter(username=username)
-            if qs.exists():
-                userid = qs[0].pk
-        self.selected = {}
+            userid = qs[0].pk  if qs.exists() else  -1
         # raw HTTP request info
         for key in self.keys:
-            if key in request.GET:   self.selected[key] = request.GET[key]
+            if key in request.GET: 
+                self.filters[key].set_value( request.GET[key] )
         # also process arguments
         for key,val in [("user",userid),("datemin",datemin),("datemax",datemax)]:
-            if val is not None: self.selected[key] = val
-            
-        # handle invalid ids:
-        if "user" in self.selected: 
-            if not User.objects.filter(pk=self.selected["user"]).exists():
-                del self.selected["user"]
-        if "job" in self.selected: 
-            if not Job.objects.filter(pk=self.selected["job"]).exists():
-                del self.selected["job"]
+            if val is not None: 
+                self.filters[key].set_value( val )
         
         self.current_queries = {}
         # Save current queries to use when creating links.
-        for key,val in self.selected.iteritems():
-            self.current_queries[key] = "{0}={1}".format(key,val)
+        for filter in self.filters.itervalues():
+            q = filter.get_query_string()
+            if q:
+                self.current_queries[filter.key] = q
             
         self.menu = WorkViewMenu()
         allsubmenu = WorkViewMenu.SubMenu("",[WorkViewMenu.MenuItem("","all")])
         self.menu.submenus.append(allsubmenu)
         
         # build the links
-        self.build_user_links(request)
-        self.build_job_links(request)
-        self.build_yearmonth_links(request)
+        self.build_user_links()
+        self.build_job_links()
+        self.build_yearmonth_links()
         
         # query info... for display in the web page
-        self.view_filters = []
-        if "user" in self.selected:
-            val = self.selected["user"]
-            self.view_filters.append(('User',"{0}".format(User.objects.filter(pk=val)[0].username)))
-        if "job" in self.selected:
-            val = self.selected["job"]
-            self.view_filters.append(("Job", "{0}".format(Job.objects.filter(pk=val)[0].name)))
-        if "datemin" in self.selected:
-            val = self.selected["datemin"]
-            self.view_filters.append(("Date minimum", "{0}".format(val)))
-        if "datemax" in self.selected:
-            val = self.selected["datemax"]
-            self.view_filters.append(("Date maximum", "{0}".format(val)))
+        self.query_info = []
+        for key in self.keys:
+            qi = self.filters[key].get_query_info()
+            if qi is not None:
+                self.query_info.append(qi)
             
             
     def filter_items(self, items):
-        if "user" in self.selected:
-            items = items.filter(user__pk=self.selected["user"])
-        if "job" in self.selected:
-            items = items.filter(job__pk=self.selected["job"])
-        if "datemin" in self.selected:
-            items = items.filter(date__gte=self.selected["datemin"])
-        if "datemax" in self.selected:
-            items = items.filter(date__lte=self.selected["datemax"])
+        for filter in self.filters.itervalues():
+            items = filter.apply_filter(items)
         return items
         
         
-    def build_user_links(self, request):
+    def build_user_links(self):
         # The basequery includes all current queries except for 'user'
         basequery = '&'.join(v for k,v in self.current_queries.iteritems() if k!="user")
         alllink = (basequery,'all users')
@@ -170,7 +208,7 @@ class WorkViewer(object):
         links = [alllink] + links
         self.menu.submenus.append(WorkViewMenu.SubMenu("User",links))
         
-    def build_yearmonth_links(self, request):
+    def build_yearmonth_links(self):
         basequery = '&'.join(v for k,v in self.current_queries.iteritems() if k!="datemin" and k!="datemax")
         alllink = (basequery,'all dates')
         if basequery: basequery+='&'
@@ -189,7 +227,7 @@ class WorkViewer(object):
         links = [alllink] + links
         self.menu.submenus.append(WorkViewMenu.SubMenu("Date",links))
         
-    def build_job_links(self, request):
+    def build_job_links(self):
         basequery = '&'.join(v for k,v in self.current_queries.iteritems() if k!="job")
         alllink = (basequery,'all jobs')
         if basequery: basequery+='&'
@@ -231,7 +269,7 @@ def viewWork(request, username=None, datemin=None, datemax=None):
              'filtermenu': viewer.menu,
              'menulink_base': menulink_base,
              'column_names': list(t for k,t in columns),
-             'current_filters': viewer.view_filters,
+             'current_filters': viewer.query_info,
             }
         )
     
