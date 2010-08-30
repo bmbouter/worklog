@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 
 from django.http import HttpResponse
 import csv
+import operator
 
 from worklog.models import WorkItem, Job, WorkLogReminder
 
@@ -15,26 +16,34 @@ class WorkItemAdmin(admin.ModelAdmin):
         # Look for 'export_as_csv' in the HTTP Request header.  If it is found, 
         # we export CSV.  If it is not found, defer to the super class.
         if 'export_as_csv' in request.POST:
+            def getusername(item):
+                if item.user.last_name:
+                    return '{0} {1}'.format(item.user.first_name,item.user.last_name)
+                # if no first/last name available, fall back to username
+                else:
+                    return item.user.username
+            
+            csvfields = [
+                # Title, function on item returning value
+                ('User Key',operator.attrgetter('user.pk')),
+                ('User Name',getusername),
+                ('Job',operator.attrgetter('job.name')),
+                ('Date',operator.attrgetter('date')),
+                ('Hours',operator.attrgetter('hours')),
+                ('Task',operator.attrgetter('text')),
+                ]
+            
             ChangeList = self.get_changelist(request)
             
             # see django/contrib/admin/views/main.py  for ChangeList class.
             cl = ChangeList(request, self.model, self.list_display, self.list_display_links, self.list_filter,
                 self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self.list_editable, self) 
                 
-            rows = []
+            header = list(s[0] for s in csvfields)
+            rows = [header]
             # Iterate through currently displayed items.
             for item in cl.query_set:
-                row = list()
-                row.append(str(item.user.pk))
-                # if no first/last name available, fall back to username
-                if item.user.last_name:
-                    row.append('{0} {1}'.format(item.user.first_name,item.user.last_name))
-                else:
-                    row.append(item.user.username)
-                row.append(item.job.name)
-                row.append(str(item.date))
-                row.append(str(item.hours))
-                row.append(item.text)
+                row = list(s[1](item) for s in csvfields)
                 rows.append(row)
             
             response = HttpResponse(mimetype='text/csv')
