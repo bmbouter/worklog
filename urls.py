@@ -13,7 +13,7 @@ USERNAME = r'(?P<username>[a-zA-Z0-9]+)'
 
 urlpatterns = patterns('worklog',
     (r'^add/$', 'views.createWorkItem', {'reminder_id': None}),
-    (r'^add/reminder_(?P<reminder_id>[0-9a-f\-]{36})/$','views.createWorkItem'),
+    (r'^add/reminder_(?P<reminder_id>[0-9a-f\-]{36})/$','views.createWorkItem', {}, 'worklog-reminder-view'), # last item is the view-name
     
     (r'^view/$', 'views.viewWork'),
     (r'^view/today/$', 'views.viewWork', {'datemin': datetime.date.today(), 'datemax': datetime.date.today()}),

@@ -24,5 +24,9 @@
                 ["weekdays","Weekdays (Monday-Friday)"]
             ]
         ]
+        
+        ["WORKLOG_REMINDER_EMAIL_LINK_URLBASE", 
+         "The beginning of the worklog reminder URL sent in emails.  This must be fully qualified and it must not include a closing slash.", 
+         "string", "http://"]
     ]
 }

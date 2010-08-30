@@ -1,6 +1,8 @@
 from celery.decorators import task, periodic_task
 from celery.task.schedules import crontab
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
+from django.core.urlresolvers import reverse as urlreverse
 import django.core.mail
 from worklog.models import WorkItem, WorkLogReminder
 
@@ -18,17 +20,22 @@ URL: %(url)s
 
 """
 
-submit_log_url = "http://opus-dev.cnl.ncsu.edu:7979/worklog/add/reminder_%s"
+##submit_log_url = "http://opus-dev.cnl.ncsu.edu:7979/worklog/add/reminder_%s"
 
 def compose_reminder_email(email_address, id):
     subj = "Remember to Submit Today's Worklog"
-    expire_days = app_settings.EMAIL_REMINDERS_EXPIRE_AFTER
-    expiredate = datetime.date.today() + datetime.timedelta(days=expire_days)
-    msg = email_msg%{'url': submit_log_url%id, 'expiredate': str(expiredate)}
+    expire_days =   app_settings.EMAIL_REMINDERS_EXPIRE_AFTER
+    expiredate =    datetime.date.today() + datetime.timedelta(days=expire_days)
+    url =           create_reminder_url(id)
+    msg = email_msg%{'url': url, 'expiredate': str(expiredate)}
     from_email = ""
     recipients = [email_address]
 
     return (subj, msg, from_email, recipients)
+    
+def create_reminder_url(id): 
+    path = urlreverse('worklog-reminder-view', kwargs={'reminder_id':id}, current_app='worklog')
+    return app_settings.WORKLOG_EMAIL_LINK_URLBASE+path
 
 def save_reminder_record(user,id, date):
     reminder = WorkLogReminder(reminder_id=id, user=user, date=date)

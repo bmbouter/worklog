@@ -19,3 +19,6 @@ CLEAR_REMINDERS_DAYSOFWEEK = days_of_week_mapper[getattr(settings, 'WORKLOG_CLEA
 # The time and says to send reminder emails.
 SEND_REMINDERS_HOUR = getattr(settings, 'WORKLOG_SEND_REMINDERS_HOUR', 18)
 SEND_REMINDERS_DAYSOFWEEK = days_of_week_mapper[getattr(settings, 'WORKLOG_SEND_REMINDERS_DAYSOFWEEK', 'weekdays')]
+
+##EMAIL_LINK_URLBASE = getattr(settings, 'WORKLOG_EMAIL_LINK_URLBASE', "http://")
+WORKLOG_EMAIL_LINK_URLBASE = settings.WORKLOG_REMINDER_EMAIL_LINK_URLBASE
