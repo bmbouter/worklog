@@ -237,6 +237,9 @@ class WorkViewer(object):
     
 
 def viewWork(request, username=None, datemin=None, datemax=None):
+    if datemin=='today':  datemin = datetime.date.today()
+    if datemax=='today':  datemax = datetime.date.today()
+    
     viewer = WorkViewer(request,username,datemin,datemax)
     
     items = WorkItem.objects.all()
