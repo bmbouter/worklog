@@ -12,7 +12,7 @@ import datetime
 import uuid
 
 email_msg = """\
-Our records show you did not submit a work log today.  You may use the 
+Our records show you did not submit a work log today, %(date)s.  You may use the 
 following URL to submit today's log, but you must do so before it expires on 
 %(expiredate)s.
 
@@ -22,12 +22,12 @@ URL: %(url)s
 
 ##submit_log_url = "http://opus-dev.cnl.ncsu.edu:7979/worklog/add/reminder_%s"
 
-def compose_reminder_email(email_address, id):
+def compose_reminder_email(email_address, id, date):
     subj = "Remember to Submit Today's Worklog"
     expire_days =   app_settings.EMAIL_REMINDERS_EXPIRE_AFTER
-    expiredate =    datetime.date.today() + datetime.timedelta(days=expire_days)
+    expiredate =    date + datetime.timedelta(days=expire_days)
     url =           create_reminder_url(id)
-    msg = email_msg%{'url': url, 'expiredate': str(expiredate)}
+    msg = email_msg%{'url': url, 'expiredate': str(expiredate), 'date': str(date)}
     from_email = ""
     recipients = [email_address]
 
@@ -58,7 +58,7 @@ def send_reminder_emails():
             # no work item today...
             id = str(uuid.uuid4())
             save_reminder_record(user,id,date)
-            et = compose_reminder_email(user.email, id)
+            et = compose_reminder_email(user.email, id, date)
             datatuples = datatuples + (et,)
     if datatuples:
         django.core.mail.send_mass_mail(datatuples, fail_silently=False)
@@ -73,7 +73,7 @@ def clear_expired_reminder_records():
     olddate = datetime.date.today() - datetime.timedelta(days=reminders_expire_days)
     oldrecs = WorkLogReminder.objects.filter(date__lte=olddate)
     oldrecs.delete()
-        
+
 
 def test_send_reminder_email(date=datetime.date.today()):
     # For debugging purposes: sends a reminder email
@@ -81,7 +81,7 @@ def test_send_reminder_email(date=datetime.date.today()):
     
     id = str(uuid.uuid4())
     save_reminder_record(user,id,date)
-    et = compose_reminder_email(user.email, id)
+    et = compose_reminder_email(user.email, id, date)
     subj, msg, from_email, recipients = et
     
     django.core.mail.send_mail(subj, msg, from_email, recipients, fail_silently=False)

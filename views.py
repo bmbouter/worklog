@@ -60,7 +60,7 @@ def createWorkItem(request, reminder_id=None):
         form = WorkItemForm(reminder=reminder) # An unbound form
 
     return render_to_response('worklog/workform.html',
-            {'form': form, 'reminder_id': reminder_id},
+            {'form': form, 'reminder_id': reminder_id, 'date': date},
                             context_instance=RequestContext(request))
                             
 def make_month_range(d):
