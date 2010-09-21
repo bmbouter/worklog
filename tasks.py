@@ -75,9 +75,9 @@ def clear_expired_reminder_records():
     oldrecs.delete()
 
 
-def test_send_reminder_email(date=datetime.date.today()):
+def test_send_reminder_email(username, date=datetime.date.today()):
     # For debugging purposes: sends a reminder email
-    user = User.objects.filter(username='dpwhite2')[0]
+    user = User.objects.filter(username=username)[0]
     
     id = str(uuid.uuid4())
     save_reminder_record(user,id,date)
