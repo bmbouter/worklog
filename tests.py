@@ -84,6 +84,8 @@ class CreateWorkItem_TestCase(Worklog_TestCaseBase):
             self.assertTrue("Job_OneDay" in names)
             self.assertTrue("Job_LastWeek" in names)
             self.assertTrue("Job_LastWeek2" in names)
+            
+            self.assertEquals(len(response.context['items']),0)
         
     def test_basic_submitAndExit(self):
         with self.scoped_login(username='master', password='password'):
@@ -215,6 +217,24 @@ class CreateWorkItem_TestCase(Worklog_TestCaseBase):
             self.assertEquals(item.date, self.last_week)
             self.assertEquals(item.hours, 4)
             self.assertEquals(item.job, job)
+            
+    def test_previousItemsTable(self):
+        job = Job.objects.filter(name="Job_Today")[0]
+        item = WorkItem(user=self.user, date=self.today, hours=3, 
+                        text='My work today.', job=job)
+        item.save()
+        
+        with self.scoped_login('master', 'password'):
+            response = self.client.get('/worklog/add/')
+            self.assertEquals(response.context['reminder_id'],None)
+            
+            self.assertEquals(len(response.context['items']),1)
+            items = response.context['items']
+            
+            # order of columns depends on configuration, so just check that they exist
+            self.assertTrue(job in items[0])        
+            self.assertTrue(self.user in items[0])  
+            self.assertTrue(3 in items[0])          
         
         
 class ClearExpiredReminders_TestCase(Worklog_TestCaseBase):

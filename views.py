@@ -11,6 +11,20 @@ from django.contrib.auth.models import User
 from worklog.forms import WorkItemForm
 from worklog.models import WorkItem, WorkLogReminder, Job
 
+# 'columns' determines the layout of the view table
+_column_layout = [
+    # key, title
+    ('user','User'),
+    ('date','Date'),
+    ('hours','Hours'),
+    ('job','Job'),
+    ('text','Task'),
+    ]
+    
+def _itercolumns(item):
+    for key,title in _column_layout:
+        yield getattr(item,key)
+
 no_reminder_msg = 'There is no stored reminder with the given id.  Perhaps that reminder was already used?'
 
 class BadReminderId(Exception):
@@ -58,10 +72,17 @@ def createWorkItem(request, reminder_id=None):
                     return HttpResponseRedirect('/worklog/view/%s/%s_%s/' % ( request.user.username, date, date))
     else:
         form = WorkItemForm(reminder=reminder) # An unbound form
+        
+    items = WorkItem.objects.filter(date=datetime.date.today())
+    rawitems = list(tuple(_itercolumns(item)) for item in items)
 
     return render_to_response('worklog/workform.html',
-            {'form': form, 'reminder_id': reminder_id, 'date': date},
-                            context_instance=RequestContext(request))
+            {'form': form, 'reminder_id': reminder_id, 'date': date,
+             'items': rawitems, 
+             'column_names': list(t for k,t in _column_layout)
+            },
+            context_instance=RequestContext(request)
+        )
                             
 def make_month_range(d):
     # take a date, return a tuple of two dates.  The day in the second date is the last day in that month.
@@ -251,29 +272,16 @@ def viewWork(request, username=None, datemin=None, datemax=None):
     if username is not None: menulink_base += '../'
     if datemin or datemax: menulink_base += '../'
     
-    # 'columns' determines the layout of the view table
-    columns = [
-        # key, title
-        ('user','User'),
-        ('date','Date'),
-        ('hours','Hours'),
-        ('job','Job'),
-        ('text','Task'),
-        ]
-    
-    def itercolumns(item):
-        for key,title in columns:
-            yield getattr(item,key)
-    
-    rawitems = list(tuple(itercolumns(item)) for item in items)
+    rawitems = list(tuple(_itercolumns(item)) for item in items)
     
     return render_to_response('worklog/viewwork.html', 
             {'items': rawitems,
              'filtermenu': viewer.menu,
              'menulink_base': menulink_base,
-             'column_names': list(t for k,t in columns),
+             'column_names': list(t for k,t in _column_layout),
              'current_filters': viewer.query_info,
-            }
+            },
+            context_instance=RequestContext(request)
         )
     
 

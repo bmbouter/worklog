@@ -4,7 +4,7 @@
 <head>
 <title></title>
 <style type="text/css" media="screen">
-  th { text-align: right; vertical-align: top; }
+  .formtable th { text-align: right; vertical-align: top; }
 </style>
 </head>
 
@@ -12,20 +12,39 @@
 <h2>Add a new Work Item</h2>
 {% if form %}
   <h4>For: {{ date|date:"DATE_FORMAT" }}</h4>
+  
   {% if reminder_id %}
-    <form action="/worklog/add/reminder_{{reminder_id}}/" method="post">
+  <form action="/worklog/add/reminder_{{reminder_id}}/" method="post">
   {% else %}
-    <form action="/worklog/add/" method="post">
+  <form action="/worklog/add/" method="post">
   {% endif %}
-      <table>
-        {% csrf_token %}
-        {{ form }}
-        <tr>
-        <td><input type="submit" name="submit_and_exit" value="Submit and Exit" /></td>
-        <td><input type="submit" name="submit_and_add_another" value="Submit and Add Another" /></td>
-        </tr>
-      </table>
-    </form>
+    <table class='formtable'>
+      {% csrf_token %}
+      {{ form }}
+      <tr>
+      <td><input type="submit" name="submit_and_exit" value="Submit and Exit" /></td>
+      <td><input type="submit" name="submit_and_add_another" value="Submit and Add Another" /></td>
+      </tr>
+    </table>
+  </form>
+  
+  <h4>Other Work Items Submitted on {{ date|date:"DATE_FORMAT" }}:</h4>
+  <table border="1">
+    <tr>
+    {% for title in column_names %}
+      <th>{{ title }}</th>
+    {% endfor %}
+    </tr>
+    
+    {% for item in items %}
+      <tr>
+        {% for field in item %}
+          <td>{{ field }}</td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </table>
+  
 {% else %}
     <p>This application is broken somehow...</p>
 {% endif %}
