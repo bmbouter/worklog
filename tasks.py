@@ -23,7 +23,7 @@ URL: %(url)s
 ##submit_log_url = "http://opus-dev.cnl.ncsu.edu:7979/worklog/add/reminder_%s"
 
 def compose_reminder_email(email_address, id, date):
-    subj = "Remember to Submit Today's Worklog"
+    subj = "Remember to Submit Today's Worklog (%s)"%str(date)
     expire_days =   app_settings.EMAIL_REMINDERS_EXPIRE_AFTER
     expiredate =    date + datetime.timedelta(days=expire_days)
     url =           create_reminder_url(id)
