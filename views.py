@@ -73,7 +73,7 @@ def createWorkItem(request, reminder_id=None):
     else:
         form = WorkItemForm(reminder=reminder) # An unbound form
         
-    items = WorkItem.objects.filter(date=datetime.date.today(), user=request.user)
+    items = WorkItem.objects.filter(date=date, user=request.user)
     rawitems = list(tuple(_itercolumns(item)) for item in items)
 
     return render_to_response('worklog/workform.html',

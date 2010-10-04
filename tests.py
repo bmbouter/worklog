@@ -234,7 +234,38 @@ class CreateWorkItem_TestCase(Worklog_TestCaseBase):
             # order of columns depends on configuration, so just check that they exist
             self.assertTrue(job in items[0])        
             self.assertTrue(self.user in items[0])  
-            self.assertTrue(3 in items[0])          
+            self.assertTrue(3 in items[0])        
+            
+    def test_previousItemsTableReminder(self):
+        """Test that previous items table works correctly with reminders."""
+        # create the reminder
+        uuidstr = '00001111000011110000111100001111'
+        id = str(uuid.UUID(uuidstr))
+        reminder = WorkLogReminder(reminder_id=id, user=self.user, date=self.last_week)
+        reminder.save()
+        
+        # create some work log entries
+        job1 = Job.objects.get(name="Job_LastWeek")
+        item1= WorkItem(user=self.user, date=self.last_week, hours=3, 
+                        text='Should be visible in table.', job=job1)
+        job2 = Job.objects.get(name="Job_Today")
+        item2 = WorkItem(user=self.user, date=self.today, hours=5, 
+                        text='Should not be visible in table.', job=job2)
+        item1.save()
+        item2.save()
+        
+        with self.scoped_login(username='master', password='password'):
+            response = self.client.get('/worklog/add/reminder_{0}/'.format(id))
+            
+            self.assertEquals(response.context['reminder_id'],id)
+            
+            self.assertEquals(len(response.context['items']),1)
+            items = response.context['items']
+            
+            # order of columns depends on configuration, so just check that they exist
+            self.assertTrue(job1 in items[0])        
+            self.assertTrue(self.user in items[0])  
+            self.assertTrue(3 in items[0])   
         
         
 class ClearExpiredReminders_TestCase(Worklog_TestCaseBase):
