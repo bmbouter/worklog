@@ -1,1 +1,6 @@
 *.pyc
+*.db
+runserver
+runtests
+django-admin
+local_settings.py
