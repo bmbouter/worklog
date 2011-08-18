@@ -19,8 +19,8 @@ def create_yearmonth_link(d,fieldname):
     return title,param_dict
 
 class YearMonthFilterSpec(FilterSpec):
-    def __init__(self, f, request, params, model, model_admin):
-        super(YearMonthFilterSpec,self).__init__(f,request,params,model,model_admin)
+    def __init__(self, f, request, params, model, *args, **kwargs):
+        super(YearMonthFilterSpec,self).__init__(f,request,params,model,*args,**kwargs)
         
         self.field_generic = '%s__' % self.field.name
         self.date_params = dict([(k, v) for k, v in params.items() if k.startswith(self.field_generic)])
@@ -46,8 +46,8 @@ class YearMonthFilterSpec(FilterSpec):
 
 
 class UserFilterSpec(ChoicesFilterSpec):
-    def __init__(self, f, request, params, model, model_admin):
-        super(UserFilterSpec, self).__init__(f, request, params, model, model_admin)
+    def __init__(self, f, request, params, model, *args, **kwargs):
+        super(UserFilterSpec, self).__init__(f, request, params, model, *args, **kwargs)
 
         values_list = model.objects.values_list(f.name, flat=True)
         
