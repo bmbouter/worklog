@@ -23,11 +23,12 @@ class WorkItem(models.Model):
     hours = models.IntegerField()
     text = models.TextField()
     job = models.ForeignKey(Job)
+    invoiced = models.BooleanField(default=False)
     
     # see worklog.admin_filter
     date.year_month_filter = True
     user.user_filter = True
-    
+    invoiced.is_invoiced_filter = True    
     def __str__(self):
         return '%s on %s work %d hours on %s' % (self.user, self.date, self.hours, self.text)
 

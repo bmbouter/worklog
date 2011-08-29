@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.admin.filterspecs import FilterSpec, ChoicesFilterSpec
+from django.contrib.admin.filterspecs import FilterSpec, ChoicesFilterSpec, BooleanFieldFilterSpec
 from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext as _
 
@@ -63,9 +63,25 @@ class UserFilterSpec(ChoicesFilterSpec):
                    'query_string': cl.get_query_string({self.lookup_kwarg: id}),
                    'display': smart_unicode(name)}
 
+class IsInvoicedFilterSpec(BooleanFieldFilterSpec):
+    """
+    Adds filtering by future and previous values in the admin
+    filter sidebar. Set the is_live_filter filter in the model field attribute
+    'is\_live\_filter'.    my\_model\_field.is\_live\_filter = True
+    """
+
+    def __init__(self, f, request, params, model, *args, **kwargs):
+        super(IsInvoicedFilterSpec, self).__init__(f, request, params, model, *args, **kwargs)
+        self.links = (
+            (_('Any'), {}),
+            (_('Not Invoiced'), {'%s__exact' % self.field.name: "0",}),
+            (_('Invoiced'), {'%s__exact' % self.field.name: "1",}),
+        )
+
+    def title(self):
+        return "Invoiced"
 
 
 FilterSpec.filter_specs.insert(0, (lambda f: getattr(f, 'year_month_filter', False), YearMonthFilterSpec))
 FilterSpec.filter_specs.insert(0, (lambda f: getattr(f, 'user_filter', False), UserFilterSpec))
-
-
+FilterSpec.filter_specs.insert(0, (lambda f: getattr(f, 'is_invoiced_filter', False), IsInvoicedFilterSpec))

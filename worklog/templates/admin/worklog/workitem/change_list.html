@@ -16,6 +16,7 @@
     <script type="text/javascript" src="{{ jsi18nurl|default:'../../jsi18n/' }}"></script>
   {% endif %}
   {{ media.css }}
+  
   {% if not actions_on_top and not actions_on_bottom %}
     <style>
       #changelist table thead th:first-child {width: inherit}
@@ -23,14 +24,66 @@
   {% endif %}
 {% endblock %}
 
+
 {% block extrahead %}
 {{ block.super }}
 {{ media.js }}
+<script type="text/javascript" src="/static/admin/js/calendar.js"></script>
+<script type="text/javascript" src="/static/admin/js/admin/DateTimeShortcuts.js"></script>
 {% if action_form %}{% if actions_on_top or actions_on_bottom %}
+<script type="text/javascript">
+	function getUrlVars() {
+	    var vars = {};
+	    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+		vars[key] = value;
+		});
+            if ("e" in vars) {
+            	delete vars['e'];
+	    }
+	    return vars;
+	}
+        function getUrlString(vars) {
+            var UrlString = "?";
+            for(var key in vars) {
+		UrlString = UrlString + "&" + key + "=" + vars[key];
+	    }
+            return UrlString;
+	}
+
+        function getBeforeUrl(date){
+            var url = window.location.href.split("?")[0];
+	    var vars = getUrlVars();
+            if (date.length == 10) {
+	       vars['date__lt'] = date;
+            } else {
+               delete vars['date__lt'];
+	    }
+	    return url+getUrlString(vars);
+	}
+        
+	function getAfterUrl(date){
+            var url = window.location.href.split("?")[0];
+	    var vars = getUrlVars();
+            if (date.length == 10) {
+	       vars['date__gt'] = date;
+            } else {
+               delete vars['date__gt'];
+	    }
+	    return url+getUrlString(vars);
+	}
+	
+</script>
 <script type="text/javascript">
 (function($) {
     $(document).ready(function($) {
         $("tr input.action-select").actions();
+        var vars = getUrlVars()
+        if ("date__lt" in vars) {
+	   document.getElementById("id_before_date").value = vars['date__lt'];
+        }
+        if ("date__gt" in vars) {
+	   document.getElementById("id_after_date").value = vars['date__gt'];
+        }
     });
 })(django.jQuery);
 </script>
@@ -85,6 +138,12 @@
           <div id="changelist-filter">
             <h2>{% trans 'Filter' %}</h2>
             {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
+            <h2>After:</h2>
+            <input class="vDateField" id="id_after_date" name="after_date" type="text" value="" size="10">
+            <input type="button" value="Filter" onClick="window.location = getAfterUrl(document.getElementById('id_after_date').value);">	 
+            <h2>Before:</h2>
+            <input class="vDateField" id="id_before_date" name="before_date" type="text" size="10">
+            <input type="button" value="Filter" onClick="window.location = getBeforeUrl(document.getElementById('id_before_date').value);">	 
           </div>
         {% endif %}
       {% endblock %}

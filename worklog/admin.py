@@ -5,13 +5,23 @@ from django.http import HttpResponse
 import csv
 import operator
 
+from django.db.models import Sum
 from worklog.models import WorkItem, Job, WorkLogReminder
 
 
+def mark_invoiced(modeladmin, request, queryset):
+    queryset.update(invoiced=True)
+mark_invoiced.short_description = "Mark selected work items as invoiced."
+
+def mark_not_invoiced(modeladmin, request, queryset):
+    queryset.update(invoiced=False)
+mark_not_invoiced.short_description = "Mark selected work items as not invoiced."
+
 class WorkItemAdmin(admin.ModelAdmin):
-    list_display = ('user','date','hours','text','job')
-    list_filter = ('user','date','job')
-    
+    list_display = ('user','date','hours','text','job','invoiced')
+    list_filter = ('user','date','job', 'invoiced')
+    actions = [mark_invoiced, mark_not_invoiced]
+ 
     def changelist_view(self, request, extra_context=None):
         # Look for 'export_as_csv' in the HTTP Request header.  If it is found, 
         # we export CSV.  If it is not found, defer to the super class.
@@ -56,7 +66,17 @@ class WorkItemAdmin(admin.ModelAdmin):
             return response
 
         else:
-            return super(WorkItemAdmin,self).changelist_view(request, extra_context)
+            # Get total number of hours for current queryset
+            ChangeList = self.get_changelist(request)
+            
+            # see django/contrib/admin/views/main.py  for ChangeList class.
+            cl = ChangeList(request, self.model, self.list_display, self.list_display_links, self.list_filter,
+                self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self.list_editable, self) 
+	    if not extra_context:
+		extra_context = cl.get_query_set().aggregate(Sum('hours'))
+            else:
+		extra_context.update(cl.get_query_set().aggregate(Sum('hours')))
+	    return super(WorkItemAdmin,self).changelist_view(request, extra_context)
 
 class JobAdmin(admin.ModelAdmin):
     list_display = ('name','open_date','close_date')
