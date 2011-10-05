@@ -6,7 +6,7 @@ import csv
 import operator
 
 from django.db.models import Sum
-from worklog.models import WorkItem, Job, WorkLogReminder
+from worklog.models import WorkItem, Job, WorkLogReminder, BillingSchedule, Funding
 
 
 def mark_invoiced(modeladmin, request, queryset):
@@ -18,8 +18,8 @@ def mark_not_invoiced(modeladmin, request, queryset):
 mark_not_invoiced.short_description = "Mark selected work items as not invoiced."
 
 class WorkItemAdmin(admin.ModelAdmin):
-    list_display = ('user','date','hours','text','job','invoiced')
-    list_filter = ('user','date','job', 'invoiced')
+    list_display = ('user','date','hours','text','job','invoiced','do_not_invoice')
+    list_filter = ('user','date','job', 'invoiced','do_not_invoice')
     actions = [mark_invoiced, mark_not_invoiced]
  
     def changelist_view(self, request, extra_context=None):
@@ -78,8 +78,18 @@ class WorkItemAdmin(admin.ModelAdmin):
 		extra_context.update(cl.get_query_set().aggregate(Sum('hours')))
 	    return super(WorkItemAdmin,self).changelist_view(request, extra_context)
 
+class BillingScheduleInline(admin.StackedInline):
+    model = BillingSchedule
+
+class FundingInline(admin.StackedInline):
+    model = Funding
+
 class JobAdmin(admin.ModelAdmin):
     list_display = ('name','open_date','close_date')
+    inlines = [
+        BillingScheduleInline,
+        FundingInline,
+    ]
 
 admin.site.register(WorkItem, WorkItemAdmin)
 admin.site.register(Job, JobAdmin)

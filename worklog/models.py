@@ -17,6 +17,21 @@ class Job(models.Model):
     def get_jobs_open_on(date):
         return Job.objects.filter(open_date__lte=date).filter(Q(close_date__gte=date) | Q(close_date=None))
 
+class BillingSchedule(models.Model):
+    job = models.ForeignKey(Job, related_name='billing_schedule')
+    date = models.DateField()
+
+    def __unicode__(self):
+        return 'Billing for %s' % self.job
+
+class Funding(models.Model):
+    job = models.ForeignKey(Job, related_name='funding')
+    hours = models.IntegerField()
+    date_available = models.DateField()
+
+    def __unicode__(self):
+        return 'Funding for %s' % self.job
+
 class WorkItem(models.Model):
     user = models.ForeignKey(User)
     date = models.DateField()
@@ -24,6 +39,7 @@ class WorkItem(models.Model):
     text = models.TextField()
     job = models.ForeignKey(Job)
     invoiced = models.BooleanField(default=False)
+    do_not_invoice = models.BooleanField(default=False)
     
     # see worklog.admin_filter
     date.year_month_filter = True

@@ -1,14 +1,16 @@
+from django.conf import settings
 from celery.decorators import task, periodic_task
 from celery.task.schedules import crontab
+from celery.registry import TaskRegistry
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse as urlreverse
 import django.core.mail
-from worklog.models import WorkItem, WorkLogReminder
+from worklog.models import WorkItem, WorkLogReminder, Job
 
 import app_settings
 
-import datetime
+import datetime, calendar
 import uuid
 
 email_msg = """\
@@ -20,7 +22,55 @@ URL: %(url)s
 
 """
 
+registry = TaskRegistry()
+
 ##submit_log_url = "http://opus-dev.cnl.ncsu.edu:7979/worklog/add/reminder_%s"
+
+# Generate at 2 AM daily during the week
+@periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))
+def generate_invoice():
+    date = datetime.datetime.now()
+    email_msgs = []
+    billable_jobs = Job.objects.filter(billing_schedule__date=datetime.date(date.year, date.month, date.day))
+    send_mail = True
+
+    if billable_jobs:
+        for job in billable_jobs:
+            work_items = WorkItem.objects.filter(job=job, invoiced=False).exclude(do_not_invoice=True)
+
+            if work_items:
+                send_mail = True
+                weeks = calendar.Calendar(0).monthdatescalendar(date.year, date.month)
+                week_of = '%s/%s/%s'
+
+                for week in weeks:
+                    if datetime.date(date.year, date.month, date.day) in week:
+                        week_of = week_of % (week[0].month, week[0].day, week[0].year)
+
+                job_msg = "%s\n\tDate: Week of %s\n\t\t" % (job.name, week_of)
+                work_item_msgs = []
+
+                for item in work_items:
+                    msg = '%s, %s\n' % (item.hours, item.text)
+                    work_item_msgs.append(msg)
+
+                msg = job_msg + ('\t\t').join(work_item_msgs)
+                email_msgs.append(msg)
+            else:
+                send_mail = False
+    else:
+        send_mail = False
+    
+    if send_mail:
+        sub = 'Invoice'
+        msg = ('\n').join(email_msgs)
+        recipients = []
+                
+        for admin in settings.ADMINS:
+            recipients.append(admin[1])
+
+        django.core.mail.send_mail(sub, msg, '', recipients)
+
 
 def compose_reminder_email(email_address, id, date):
     subj = "Remember to Submit Today's Worklog (%s)"%str(date)
@@ -85,5 +135,6 @@ def test_send_reminder_email(username, date=datetime.date.today()):
     subj, msg, from_email, recipients = et
     
     django.core.mail.send_mail(subj, msg, from_email, recipients, fail_silently=False)
-    
 
+
+registry.register(generate_invoice)

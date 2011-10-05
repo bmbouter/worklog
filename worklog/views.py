@@ -2,14 +2,19 @@ import datetime
 import calendar
 import time
 
+from celery.execute import send_task
+
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.views.generic import TemplateView
+from django.conf import settings
 
 from worklog.forms import WorkItemForm
 from worklog.models import WorkItem, WorkLogReminder, Job
+from worklog.tasks import generate_invoice
 
 # 'columns' determines the layout of the view table
 _column_layout = [
@@ -284,4 +289,34 @@ def viewWork(request, username=None, datemin=None, datemax=None):
             context_instance=RequestContext(request)
         )
     
+
+class ReportView(TemplateView):
+    template_name = 'worklog/report.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ReportView, self).get_context_data()
+        context['date'] = kwargs.get('date', None)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if 'generate' in request.POST:
+            generate_invoice.delay()
+            #send_task("tasks.generate_invoice")
+            return self.render_to_response({'generated': True})
+        elif 'invoice' in request.POST:
+            jobs = Job.objects.filter(billing_schedule__date=kwargs.get('date', None))
+            for job in jobs:
+                work_items = WorkItem.objects.filter(job=job, invoiced=False).exclude(do_not_invoice=True)
+                for items in work_items:
+                    items.invoiced = True
+                    items.save()
+            return self.render_to_response({'invoiced': True})
+        else:
+            return self.render_to_response(self.get_context_data())
+
+    def render_to_response(self, context):
+        return TemplateView.render_to_response(self, context)
+
+
 

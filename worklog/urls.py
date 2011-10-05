@@ -1,6 +1,9 @@
 import datetime
 
 from django.conf.urls.defaults import *
+from django.contrib.auth.decorators import login_required
+
+from worklog.views import ReportView
 
 DATEMIN = r'(?P<datemin>\d{4}-\d{2}-\d{2})'
 DATEMAX = r'(?P<datemax>\d{4}-\d{2}-\d{2})'
@@ -25,4 +28,8 @@ urlpatterns = patterns('worklog',
     (r'^view/'+USERNAME+'/today/$', 'views.viewWork', {'datemin': 'today', 'datemax': 'today'}),
     (r'^view/'+USERNAME+'/'+DATERANGE1+'/$', 'views.viewWork'),
     (r'^view/'+USERNAME+'/'+DATERANGE2+'/$', 'views.viewWork'),
+)
+
+urlpatterns += patterns('worklog',
+    url(r'^view/report/(?P<date>\d{4}-\d{2}-\d{2})/$', login_required(ReportView.as_view()), name='report_url')
 )

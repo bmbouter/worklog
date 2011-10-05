@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-us" xml:lang="en-us" >
+
+<head>
+<title>Invoice Tools</title>
+<style type="text/css">
+  button {
+    overflow: visible;
+    width: auto;
+  }
+
+  button.link {
+    font-family: inherit;
+    font-size: inherit;
+    margin: 0;
+    padding: 0;
+    color: blue;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+</style>
+</head>
+
+<body>
+
+<!-- Content -->
+<div class="content">
+  {% if generated %}
+    <h1>An invoice was generated and emailed to you</h1>
+  {% endif %}
+  {% if invoiced %}
+    <h1>All un-invoiced items have now been invoiced</h1>
+  {% endif %}
+  <form method="post" action="">
+    {% csrf_token %}
+    <button type="submit" name="generate" value="generate" class="link">Generate report</button><br />
+    <button type="submit" name="invoice" value="invoice" class="link">Invoice all items</button>
+  </form>
+</div>
+
+</body>
+
+</html>
