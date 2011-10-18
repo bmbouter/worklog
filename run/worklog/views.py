@@ -1,19 +1,23 @@
 import datetime
 import calendar
 import time
+import re
 
 from celery.execute import send_task
 
+from django.utils import simplejson
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from django.contrib.auth.models import User
 from django.views.generic import TemplateView
 from django.conf import settings
 
 from worklog.forms import WorkItemForm
-from worklog.models import WorkItem, WorkLogReminder, Job
+from worklog.models import WorkItem, WorkLogReminder, Job, Funding
 from worklog.tasks import generate_invoice
 
 # 'columns' determines the layout of the view table
@@ -318,5 +322,120 @@ class ReportView(TemplateView):
     def render_to_response(self, context):
         return TemplateView.render_to_response(self, context)
 
+class ChartView(TemplateView):
+    template_name = 'worklog/chart.html'
 
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super(ChartView, self).dispatch(*args, **kwargs)
+    
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        
+        if 'job_id' in request.GET:
+            job_id = request.GET['job_id']
+            
+            if 'start_date' in request.GET and 'end_date' in request.GET:
+                start_date = request.GET['start_date']
+                end_date = request.GET['end_date']
+                
+                context['start_date'] = start_date
+                context['end_date'] = end_date
+            
+            context['job_id'] = job_id
+            
+            return self.render_to_response(context)
+        else:
+            return self.render_to_response(context)
+        
+    
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs);
+        job_id = request.POST['job_id']
+        start_date = None
+        end_date = None
+        
+        # Make sure the use selected a job
+        if job_id == u'-1':
+            error = { }
+            error['error'] = 'Invalid job selection'
+            return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+        
+        # Check if the job doesnt exist due to a bad param
+        try:
+            job = Job.objects.get(pk=job_id)
+        except:
+            error = { }
+            error['error'] = 'Job with id %s does not exit' % job_id
+            return HttpResponse(simplejson.dumps(error), mimetype='application/json')
+        
+        if job is not None:
+            data = {}
+            start_date = None
+            end_date = None
+
+            work_items = WorkItem.objects.filter(job=job)
+            funding = Funding.objects.filter(job=job)
+            
+            # Try to convert the dates given
+            if 'start_date' in request.POST and 'end_date' in request.POST:
+                if len(request.POST['start_date']) > 0 and len(request.POST['end_date']) > 0:
+                    try:
+                        start_date = datetime.datetime.strptime(request.POST['start_date'], '%m/%d/%Y')
+                        end_date = datetime.datetime.strptime(request.POST['end_date'], '%m/%d/%Y')
+                    except ValueError:
+                        error = { }
+                        error['error'] = 'Enter a valid date format'
+                        return HttpResponse(simplejson.dumps(error), mimetype='application/json')
+            
+            # If the dates were not given, start at the first available funding and end at the last work item
+            if start_date is None and end_date is None:
+                start_date = funding[0].date_available
+                end_date = work_items.latest('date').date
+            
+            # If, somehow, the dates were not set, do not continue
+            if start_date is not None and end_date is not None:
+                try:
+                    hours = funding.get(date_available__lte=start_date).hours
+                except:
+                    hours = 0
+                    
+                date = start_date
+                days = (end_date - start_date).days
+                
+                # Make sure the dates were in a valid order
+                if days < 0:
+                    error = { }
+                    error['error'] = 'Start date has to be before end date'
+                    return HttpResponse(simplejson.dumps(error), mimetype='application/json')
+                else:
+                    # Loop through and calculate the hours for each day
+                    for n in range(days + 1):
+                        for work_item in work_items.filter(date=date):
+                            hours -= work_item.hours
+                
+                        for funds in funding.filter(date_available=date):
+                            hours += funds.hours
+                
+                        data[str(date)] = hours
+                        date += datetime.timedelta(days=1)
+
+                    return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+            else:
+                error = { }
+                error['error'] = 'Dates could not be processed'
+                return HttpResponse(simplejson.dumps(error), mimetype='application/json')
+        else:
+            error = { }
+            error['error'] = 'There was an error processing your request'
+            return HttpResponse(simplejson.dumps(error), mimetype='application/json')  
+    
+    def get_context_data(self, **kwargs):
+        context = super(ChartView, self).get_context_data()
+        context['jobs'] = Job.objects.all()
+
+        return context
+
+    def render_to_response(self, context):
+        return TemplateView.render_to_response(self, context)
 

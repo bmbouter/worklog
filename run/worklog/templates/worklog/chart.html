@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-us" xml:lang="en-us" >
+
+<head>
+    <title>Job Charts</title>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.flot.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.flot.selection.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/anytime.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/Chart.js"></script>
+    
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/anytime.css" />
+
+    <script type="text/javascript">
+        var c, options = {
+            xaxis: {
+                mode: 'time',
+                timeformat: '%m-%d-%y'
+            },
+            yaxis: {
+                label: 'Hours Available'
+            }
+        }
+        
+        var data;
+        
+        function parseData(data, status, xhr) {
+            if('error' in data) {
+                $('#plot').after('<div class="error">' + data['error'] + '</div>');
+            } else {
+                var arr = [],
+                    keys = [],
+                    count = 0;
+            
+                //Grab the keys
+                for(var d in data) {
+                    keys.push(d);
+                }
+
+                //Sort the keys since they are not sorted
+                //when returned from the python
+                keys.sort();
+            
+                for(var i = 0; i < keys.length; i++) {
+                    var point = [new Date(keys[i]).getTime(), data[keys[i]]];
+                    arr.push(point);
+                }
+            
+                c = new Chart('#plot', [arr], options);
+            
+                if($('#overview').children().length) {
+                    c.disableOverview();
+                }
+            
+                c.displayLineChart();
+                c.enableOverview('#overview');
+            
+                drawAxes();
+            }
+        }
+        
+        function drawAxes() {
+            $('canvas.overlay').attr('height', '550');
+            var context = $('canvas.overlay')[0].getContext('2d');
+            context.fillStyle = '#000';
+            context.font = 'bold 12px sans-serif';
+            context.textAlign ='center';
+            context.fillText('Days', 275, 515);
+            context.rotate(90 * Math.PI / 180);
+            context.fillText('Available hours', 235, -3);
+        }
+
+        $(document).ready(function() {            
+            $('#startDate').AnyTime_picker({
+                format: '%m/%d/%Y'
+            });
+            
+            $('#endDate').AnyTime_picker({
+                format: '%m/%d/%Y'
+            });
+            
+            $('#chartingForm').submit(function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                $('div.error').remove();
+                r = /^\d{2}\/\d{2}\/\d{4}$/
+                
+                startDate = $('#startDate').val();
+                endDate = $('#endDate').val();
+                
+                if((!startDate && !endDate) || (startDate.match(r) && endDate.match(r))) {
+                    if($('#jobs').val() === '-1') {
+                        $('#plot').after('<div class="error">Select a job</div>');
+                    } else {
+                        $.post('', $(this).serialize(), parseData);
+                    }
+                } else {
+                    $('#plot').after('<div class="error">Enter valid dates or leave empty</div>');
+                }
+            });
+        });
+    </script>
+    
+    <style type="text/css">
+        body {
+            font-family: helvetica, arial, sans-serif;
+            font-size: .9em;
+        }
+        .label {
+            -o-transform:rotate(-90deg);
+            -moz-transform: rotate(-90deg);
+            -webkit-transform:rotate(-90deg);
+            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+        }
+        .error {
+            color: #FF0000;
+            margin-bottom: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="content">
+        <div id="plot" style="width: 550px; height: 500px; float: left; margin: 0px 20px 0px 10px"></div>
+        {% if error %}
+        <div class="error">
+            {{ error }}
+        </div>
+        {% endif %}
+        {% if job_id %}
+            <script type="text/javascript">
+                $.post('', { 'job_id': '{{job_id}}', 'start_date': '{{start_date}}', 'end_date': '{{ end_date }}' }, parseData);
+            </script>
+        {% endif %}
+        <form id="chartingForm" method="post" target="">
+            <select id="jobs" name="job_id">
+    			<option value="-1">-- Select a Job --</option>
+                {% for job in jobs %}
+                <option value="{{ job.pk }}">{{ job }}</option>
+                {% endfor %}
+            </select>
+            <br />
+            <label for="startDate">Start Date (mm/dd/yyyy)</label>
+            <input type="text" id="startDate" name="start_date" value="" /><br />
+            <label for="endDate">End Date (mm/dd/yyyy)</label>
+            <input type="text" id="endDate" name="end_date" value="" /><br />
+            <input type="submit" value="Submit" />
+        </form>
+    </div>
+    <div id="overview" style="margin-top: 10px; width: 300px; height: 80px; float: left"></div>
+</body>
+
+</html>
