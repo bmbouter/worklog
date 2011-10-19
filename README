@@ -1,0 +1,29 @@
+Worklog
+#######
+
+Overview
+========
+
+Worklog is a Django-based, hourly work logging web application that supports job coding, job funding, 
+view filtering, CSV report generation, and an e-mail reminder system.
+
+Charting
+========
+
+Charting capability is provided to view funding vs. hourly consumption for individual jobs. The 
+charting interface can be accessed at: ``http://yourdeploymenturl/worklog/chart/``
+
+Parameters
+----------
+
+In order to view charts related to a job, you may use the provided web interface or provide the values 
+using the following GET parameters:
+
+::
+
+  job_id - The ID of the job that you wish to view the data for.
+  start_date (optional) - The date to use for the start of the data reported. The format is mm/dd/yyyy.
+  end_date (optional) - The date to use for the end of the data reported. The format is mm/dd/yyyy.
+
+If you do not provide the start and end date, the data will start at the first available date of funding 
+and end at the date of the last submitted work item.
