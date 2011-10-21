@@ -18,7 +18,8 @@
                 timeformat: '%m-%d-%y'
             },
             yaxis: {
-                label: 'Hours Available'
+                label: 'Hours Available',
+                min: 0
             }
         }
         
@@ -56,6 +57,19 @@
                 c.enableOverview('#overview');
             
                 drawAxes();
+                
+                //Register the scale listener
+                $('#scale').click(function() {
+                    if($(this).attr('checked')) {
+                        delete options.yaxis.min;
+                    } else {
+                        options.yaxis.min = 0
+                    }
+                    
+                    c.changeOptions(options);
+                    c.displayLineChart();
+                    drawAxes();
+                });
             }
         }
         
@@ -117,6 +131,9 @@
             color: #FF0000;
             margin-bottom: 3px;
         }
+        #options {
+            margin: 30px 0px;
+        }
     </style>
 </head>
 
@@ -148,7 +165,11 @@
             <input type="submit" value="Submit" />
         </form>
     </div>
-    <div id="overview" style="margin-top: 10px; width: 300px; height: 80px; float: left"></div>
+    <div id="options">
+        <label for="scale">Scale</label>
+        <input type="checkbox" id="scale" /><br />
+        <div id="overview" style="margin-top: 15px; width: 300px; height: 80px; float: left"></div>
+    </div>
 </body>
 
 </html>

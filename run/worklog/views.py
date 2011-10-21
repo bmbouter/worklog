@@ -396,7 +396,8 @@ class ChartView(TemplateView):
             # If, somehow, the dates were not set, do not continue
             if start_date is not None and end_date is not None:
                 try:
-                    hours = funding.get(date_available__lte=start_date).hours
+                    # Using filter, so if we get more than one date, we pick the most recent
+                    hours = funding.filter(date_available__lte=start_date).latest('date_available').hours
                 except:
                     hours = 0
                     
@@ -411,14 +412,14 @@ class ChartView(TemplateView):
                 else:
                     # Loop through and calculate the hours for each day
                     for n in range(days + 1):
+                        data[str(date)] = hours
+                        date += datetime.timedelta(days=1)
+                        
                         for work_item in work_items.filter(date=date):
                             hours -= work_item.hours
                 
                         for funds in funding.filter(date_available=date):
                             hours += funds.hours
-                
-                        data[str(date)] = hours
-                        date += datetime.timedelta(days=1)
 
                     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
             else:

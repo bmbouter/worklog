@@ -15,6 +15,14 @@ function Chart(loc, d, opt) {
     }
     
     /**
+     * Change the options to a different object
+     * @param {Object} the new options object
+     */
+    function changeOptions(opt) {
+        options = opt;
+    }
+    
+    /**
      * Change the value of a point on the chart
      *
      * @param {String} label the data plot containing the point
@@ -446,6 +454,7 @@ function Chart(loc, d, opt) {
     };
 
     return {
+        changeOptions: changeOptions,
         changePoint: changePoint,
         changeDataPlot: changeDataPlot,
         addDataPlot: addDataPlot,
