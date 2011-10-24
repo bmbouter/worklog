@@ -11,11 +11,16 @@ class Job(models.Model):
     # if end_date==None, the Job is still open
     open_date = models.DateField()
     close_date = models.DateField(null=True, blank=True)
+    
     def __unicode__(self):
         return self.name
+    
     @staticmethod
     def get_jobs_open_on(date):
         return Job.objects.filter(open_date__lte=date).filter(Q(close_date__gte=date) | Q(close_date=None))
+    
+    def hasFunding(self):
+        return len(self.funding.all()) != 0
 
 class BillingSchedule(models.Model):
     job = models.ForeignKey(Job, related_name='billing_schedule')

@@ -369,7 +369,7 @@ class ChartView(TemplateView):
             error['error'] = 'Job with id %s does not exit' % job_id
             return HttpResponse(simplejson.dumps(error), mimetype='application/json')
         
-        if job is not None:
+        if job is not None and job.hasFunding():
             data = {}
             start_date = None
             end_date = None
@@ -390,7 +390,7 @@ class ChartView(TemplateView):
             
             # If the dates were not given, start at the first available funding and end at the last work item
             if start_date is None and end_date is None:
-                start_date = funding[0].date_available
+                start_date = work_items.latest('date').date
                 end_date = work_items.latest('date').date
             
             # If, somehow, the dates were not set, do not continue
@@ -400,7 +400,7 @@ class ChartView(TemplateView):
                     hours = funding.filter(date_available__lte=start_date).latest('date_available').hours
                 except:
                     hours = 0
-                    
+                
                 date = start_date
                 days = (end_date - start_date).days
                 
@@ -410,6 +410,24 @@ class ChartView(TemplateView):
                     error['error'] = 'Start date has to be before end date'
                     return HttpResponse(simplejson.dumps(error), mimetype='application/json')
                 else:
+                    # We need to calculate the hours since the first available funding
+                    initial_date = funding.order_by('date_available')[0].date_available
+                    initial_days = (start_date - datetime.datetime.combine(initial_date, datetime.time())).days
+                    
+                    # If we have a difference between the initial date and start date
+                    # then we need to calculate up to the initial days
+                    if initial_days > 0:
+                        initial_hours = funding.order_by('date_available')[0].hours
+                        
+                        for n in range(initial_days):
+                            initial_date += datetime.timedelta(days=1)
+                            
+                            for work_item in work_items.filter(date=initial_date):
+                                hours -= work_item.hours
+                        
+                            for funds in funding.filter(date_available=initial_date):
+                                hours += funds.hours
+                    
                     # Loop through and calculate the hours for each day
                     for n in range(days + 1):
                         data[str(date)] = hours
@@ -428,7 +446,7 @@ class ChartView(TemplateView):
                 return HttpResponse(simplejson.dumps(error), mimetype='application/json')
         else:
             error = { }
-            error['error'] = 'There was an error processing your request'
+            error['error'] = 'There is no funding available for %s' % job
             return HttpResponse(simplejson.dumps(error), mimetype='application/json')  
     
     def get_context_data(self, **kwargs):
