@@ -159,9 +159,16 @@
         <form id="chartingForm" method="post" target="">
             <select id="jobs" name="job_id">
     			<option value="-1">-- Select a Job --</option>
-                {% for job in jobs %}
-                <option value="{{ job.pk }}">{{ job }}</option>
-                {% endfor %}
+    			<optgroup label="Open Jobs">
+                    {% for job in open_jobs %}
+                    <option value="{{ job.pk }}">{{ job }}</option>
+                    {% endfor %}
+                </optgroup>
+                <optgroup label="Closed Jobs">
+                    {% for job in closed_jobs %}
+                    <option value="{{ job.pk }}">{{ job }}</option>
+                    {% endfor %}
+                </optgroup>
             </select>
             <br />
             <label for="startDate">Start Date (mm/dd/yyyy)</label>

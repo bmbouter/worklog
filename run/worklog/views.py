@@ -451,7 +451,8 @@ class ChartView(TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super(ChartView, self).get_context_data()
-        context['jobs'] = Job.objects.all()
+        context['open_jobs'] = Job.objects.filter(close_date__gte=datetime.date.today())
+        context['closed_jobs'] = Job.objects.filter(close_date__lte=datetime.date.today())
 
         return context
 
