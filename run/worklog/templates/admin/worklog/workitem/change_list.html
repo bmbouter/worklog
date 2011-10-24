@@ -138,10 +138,10 @@
           <div id="changelist-filter">
             <h2>{% trans 'Filter' %}</h2>
             {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
-            <h2>After:</h2>
+            <h2>Show After:</h2>
             <input class="vDateField" id="id_after_date" name="after_date" type="text" value="" size="10">
             <input type="button" value="Filter" onClick="window.location = getAfterUrl(document.getElementById('id_after_date').value);">	 
-            <h2>Before:</h2>
+            <h2>Show Before:</h2>
             <input class="vDateField" id="id_before_date" name="before_date" type="text" size="10">
             <input type="button" value="Filter" onClick="window.location = getBeforeUrl(document.getElementById('id_before_date').value);">	 
           </div>
