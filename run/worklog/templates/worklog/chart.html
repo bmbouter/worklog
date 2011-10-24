@@ -7,10 +7,10 @@
     <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.flot.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.flot.selection.min.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.flot.threshold.min.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}js/anytime.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}js/Chart.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.ui.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/chart.js"></script>
     
-    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/anytime.css" />
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/smoothness/smoothness.css" />
 
     <script type="text/javascript">
         var c, options = {
@@ -91,12 +91,12 @@
         }
 
         $(document).ready(function() {            
-            $('#startDate').AnyTime_picker({
-                format: '%m/%d/%Y'
+            $('#startDate').datepicker({
+                format: 'mm/dd/yy'
             });
             
-            $('#endDate').AnyTime_picker({
-                format: '%m/%d/%Y'
+            $('#endDate').datepicker({
+                format: 'mm/dd/yy'
             });
             
             $('#chartingForm').submit(function(e) {
@@ -125,7 +125,7 @@
     <style type="text/css">
         body {
             font-family: helvetica, arial, sans-serif;
-            font-size: .9em;
+            font-size: .8em;
         }
         .label {
             -o-transform:rotate(-90deg);
