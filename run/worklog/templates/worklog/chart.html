@@ -19,8 +19,7 @@
                 timeformat: '%m-%d-%y'
             },
             yaxis: {
-                label: 'Hours Available',
-                min: 0
+                label: 'Hours Available'
             }
         }
         
@@ -32,7 +31,8 @@
             } else {
                 var arr = [],
                     keys = [],
-                    count = 0;
+                    count = 0,
+                    belowAxis = false;
             
                 //Grab the keys
                 for(var d in data) {
@@ -46,6 +46,10 @@
                 for(var i = 0; i < keys.length; i++) {
                     var point = [new Date(keys[i]).getTime(), data[keys[i]]];
                     arr.push(point);
+                    
+                    if(data[keys[i]] < 0) {
+                        belowAxis = true;
+                    }
                 }
                 
                 var chartingData = {
@@ -64,12 +68,16 @@
             
                 drawAxes();
                 
-                //Register the scale listener
-                $('#scale').click(function() {
+                //Register the y-axis listener
+                $('#y-axis').click(function() {
                     if($(this).attr('checked')) {
-                        delete options.yaxis.min;
+                        if(!belowAxis) {
+                            options.yaxis.min = 0;
+                        }
                     } else {
-                        options.yaxis.min = 0
+                        if('min' in options.yaxis) {
+                            delete options.yaxis.min;
+                        }
                     }
                     
                     c.changeOptions(options);
@@ -188,8 +196,8 @@
         </form>
     </div>
     <div id="options">
-        <label for="scale">Scale</label>
-        <input type="checkbox" id="scale" /><br />
+        <label for="y-axis">Show Y-Axis</label>
+        <input type="checkbox" id="y-axis" /><br />
         <label for="ignore_losses">Ignore losses</label>
         <input type="checkbox" id="ignore_losses"><br />
         <div id="overview" style="margin-top: 15px; width: 300px; height: 80px; float: left"></div>
