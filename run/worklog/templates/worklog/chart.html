@@ -76,6 +76,15 @@
                     c.displayLineChart();
                     drawAxes();
                 });
+                
+                //Register the ignore losses listener
+                $('#ignore_losses').click(function() {
+                    if($(this).attr('checked')) {
+                        
+                    } else {
+                        
+                    }
+                });
             }
         }
         
@@ -181,6 +190,8 @@
     <div id="options">
         <label for="scale">Scale</label>
         <input type="checkbox" id="scale" /><br />
+        <label for="ignore_losses">Ignore losses</label>
+        <input type="checkbox" id="ignore_losses"><br />
         <div id="overview" style="margin-top: 15px; width: 300px; height: 80px; float: left"></div>
     </div>
 </body>
