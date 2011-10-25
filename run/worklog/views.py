@@ -381,8 +381,8 @@ class ChartView(TemplateView):
             if 'start_date' in request.POST and 'end_date' in request.POST:
                 if len(request.POST['start_date']) > 0 and len(request.POST['end_date']) > 0:
                     try:
-                        start_date = datetime.datetime.strptime(request.POST['start_date'], '%m/%d/%Y')
-                        end_date = datetime.datetime.strptime(request.POST['end_date'], '%m/%d/%Y')
+                        start_date = datetime.datetime.strptime(request.POST['start_date'], '%m/%d/%Y').date()
+                        end_date = datetime.datetime.strptime(request.POST['end_date'], '%m/%d/%Y').date()
                     except ValueError:
                         error = { }
                         error['error'] = 'Enter a valid date format'
@@ -390,8 +390,20 @@ class ChartView(TemplateView):
             
             # If the dates were not given, start at the first available funding and end at the last work item
             if start_date is None and end_date is None:
-                start_date = work_items.latest('date').date
-                end_date = work_items.latest('date').date
+                first_work = work_items.order_by('date')[0].date
+                last_work = work_items.latest('date').date
+                first_funding = funding.order_by('date_available')[0].date_available
+                last_funding = funding.latest('date_available').date_available
+                
+                if first_work > first_funding:
+                    start_date = first_funding
+                else:
+                    start_date = first_work
+                
+                if last_work < last_funding:
+                    end_date = last_funding
+                else:
+                    end_date = last_work
             
             # If, somehow, the dates were not set, do not continue
             if start_date is not None and end_date is not None:
@@ -412,7 +424,7 @@ class ChartView(TemplateView):
                 else:
                     # We need to calculate the hours since the first available funding
                     initial_date = funding.order_by('date_available')[0].date_available
-                    initial_days = (start_date - datetime.datetime.combine(initial_date, datetime.time())).days
+                    initial_days = (start_date - initial_date).days
                     
                     # If we have a difference between the initial date and start date
                     # then we need to calculate up to the initial days
