@@ -21,9 +21,8 @@
             yaxis: {
                 label: 'Hours Available'
             }
-        }
-        
-        var data;
+        },
+        origData = null;
         
         function parseData(data, status, xhr) {
             if('error' in data) {
@@ -56,6 +55,8 @@
                     data: arr,
                     threshold: { below: 0, color: '#FF0000' }
                 };
+                
+                origData = chartingData;
             
                 c = new Chart('#plot', [chartingData], options);
             
@@ -88,9 +89,10 @@
                 //Register the ignore losses listener
                 $('#ignore_losses').click(function() {
                     if($(this).attr('checked')) {
-                        
+                        $.post('', { 'job_id': '{{ job_id }}', 'start_date': '{{ start_date }}', 'end_date': '{{ end_date }}',
+                                'ignore_losses': 'true' }, parseData);
                     } else {
-                        
+                        $.post('', { 'job_id': '{{ job_id }}', 'start_date': '{{ start_date }}', 'end_date': '{{ end_date }}' }, parseData);
                     }
                 });
             }
