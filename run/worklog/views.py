@@ -427,10 +427,18 @@ class ChartView(TemplateView):
                     return HttpResponse(simplejson.dumps(error), mimetype='application/json')
                 else:
                     # We need to calculate the hours since the first available funding
+                    # or first work item
+                    work_date = work_items.order_by('date')[0].date
+                    
                     if funding is not None:
-                        initial_date = funding.order_by('date_available')[0].date_available
+                        funding_date = funding.order_by('date_available')[0].date_available
+                        
+                        if funding_date < work_date:
+                            initial_date = funding_date
+                        else:
+                            initial_date = work_date
                     else:
-                        initial_date = start_date
+                        initial_date = work_date
                     
                     initial_days = (start_date - initial_date).days
                     

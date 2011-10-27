@@ -21,8 +21,7 @@
             yaxis: {
                 label: 'Hours Available'
             }
-        },
-        origData = null;
+        };
         
         function parseData(data, status, xhr) {
             if('error' in data) {
@@ -55,8 +54,6 @@
                     data: arr,
                     threshold: { below: 0, color: '#FF0000' }
                 };
-                
-                origData = chartingData;
             
                 c = new Chart('#plot', [chartingData], options);
             
@@ -71,19 +68,27 @@
                 
                 //Register the y-axis listener
                 $('#y-axis').click(function() {
+                    var changed = true;
+                    
                     if($(this).attr('checked')) {
                         if(!belowAxis) {
                             options.yaxis.min = 0;
+                        } else {
+                            changed = false;
                         }
                     } else {
                         if('min' in options.yaxis) {
                             delete options.yaxis.min;
+                        } else {
+                            changed = false;
                         }
                     }
                     
-                    c.changeOptions(options);
-                    c.displayLineChart();
-                    drawAxes();
+                    if(changed) {
+                        c.changeOptions(options);
+                        c.displayLineChart();
+                        drawAxes();
+                    }
                 });
                 
                 //Register the ignore losses listener
