@@ -374,11 +374,15 @@ class ChartView(TemplateView):
             start_date = None
             end_date = None
 
-            work_items = WorkItem.objects.filter(job=job)
             if job.hasFunding():
                 funding = Funding.objects.filter(job=job)
             else:
                 funding = None
+                
+            if job.hasWork():
+                work_items = WorkItem.objects.filter(job=job)
+            else:
+                work_items = None
             
             # Try to convert the dates given
             if 'start_date' in request.POST and 'end_date' in request.POST:
@@ -393,26 +397,35 @@ class ChartView(TemplateView):
             
             # If the dates were not given, start at the first available funding and end at the last work item
             if start_date is None and end_date is None:
-                first_work = work_items.order_by('date')[0].date
-                last_work = work_items.latest('date').date
-                
-                if funding is None:
-                    start_date = first_work
-                    end_date = last_work
-                else:
-                    first_funding = funding.order_by('date_available')[0].date_available
-                    last_funding = funding.latest('date_available').date_available
-                
-                    if first_work > first_funding:
-                        start_date = first_funding
-                    else:
+                if work_items is not None:
+                    first_work = work_items.order_by('date')[0].date
+                    last_work = work_items.latest('date').date
+                    
+                    if funding is None:
                         start_date = first_work
-                
-                    if last_work < last_funding:
-                        end_date = last_funding
-                    else:
                         end_date = last_work
-            
+                    else:
+                        first_funding = funding.order_by('date_available')[0].date_available
+                        last_funding = funding.latest('date_available').date_available
+                
+                        if first_work > first_funding:
+                            start_date = first_funding
+                        else:
+                            start_date = first_work
+                
+                        if last_work < last_funding:
+                            end_date = last_funding
+                        else:
+                            end_date = last_work
+                else:
+                    if funding is not None:
+                        start_date = funding.order_by('date_available')[0].date_available
+                        end_date = funding.latest('date_available').date_available
+                    else:
+                        error = { }
+                        error['error'] = 'There is no work or funding available for job %s' % job
+                        return HttpResponse(simplejson.dumps(error), mimetype='application/json')
+                    
             # If, somehow, the dates were not set, do not continue
             if start_date is not None and end_date is not None:
                 hours = 0
@@ -428,17 +441,23 @@ class ChartView(TemplateView):
                 else:
                     # We need to calculate the hours since the first available funding
                     # or first work item
-                    work_date = work_items.order_by('date')[0].date
-                    
-                    if funding is not None:
-                        funding_date = funding.order_by('date_available')[0].date_available
-                        
-                        if funding_date < work_date:
-                            initial_date = funding_date
-                        else:
-                            initial_date = work_date
-                    else:
+                    if work_items is not None:
+                        work_date = work_items.order_by('date')[0].date
                         initial_date = work_date
+                    else:
+                        work_date = None
+                        
+                        if funding is not None:
+                            funding_date = funding.order_by('date_available')[0].date_available
+                            
+                            if work_date is None or funding_date < work_date:
+                                initial_date = funding_date
+                            else:
+                                initial_date = work_date
+                        else:
+                            error = { }
+                            error['error'] = 'There is no work or funding available for job %s' % job
+                            return HttpResponse(simplejson.dumps(error), mimetype='application/json')
                     
                     initial_days = (start_date - initial_date).days
                     
@@ -451,8 +470,9 @@ class ChartView(TemplateView):
                             initial_hours = 0
                         
                         for n in range(initial_days):
-                            for work_item in work_items.filter(date=initial_date):
-                                hours -= work_item.hours
+                            if work_items is not None:
+                                for work_item in work_items.filter(date=initial_date):
+                                    hours -= work_item.hours
                             
                             if funding is not None:
                                 for funds in funding.filter(date_available=initial_date):
@@ -462,8 +482,9 @@ class ChartView(TemplateView):
                     
                     # Loop through and calculate the hours for each day
                     for n in range(days + 1):
-                        for work_item in work_items.filter(date=date):
-                            hours -= work_item.hours
+                        if work_items is not None:
+                            for work_item in work_items.filter(date=date):
+                                hours -= work_item.hours
                         
                         if funding is not None:
                             for funds in funding.filter(date_available=date):

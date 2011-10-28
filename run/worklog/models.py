@@ -21,6 +21,9 @@ class Job(models.Model):
     
     def hasFunding(self):
         return len(self.funding.all()) != 0
+    
+    def hasWork(self):
+        return len(WorkItem.objects.filter(job=self)) != 0
 
 class BillingSchedule(models.Model):
     job = models.ForeignKey(Job, related_name='billing_schedule')
