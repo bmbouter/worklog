@@ -66,15 +66,18 @@
             
                 drawAxes();
                 
-                //Register the y-axis listener
-                $('#y-axis').click(function() {
+                function respectYAxis() {
                     var changed = true;
                     
-                    if($(this).attr('checked')) {
+                    if($('#y-axis').attr('checked')) {
                         if(!belowAxis) {
                             options.yaxis.min = 0;
                         } else {
-                            changed = false;
+                            if('min' in options.yaxis) {
+                                delete options.yaxis.min
+                            }
+                            
+                            changed = true;
                         }
                     } else {
                         if('min' in options.yaxis) {
@@ -89,17 +92,25 @@
                         c.displayLineChart();
                         drawAxes();
                     }
-                });
+                }
                 
-                //Register the ignore losses listener
-                $('#ignore_losses').click(function() {
-                    if($(this).attr('checked')) {
+                function ignoreLosses() {
+                    if($('#ignore_losses').attr('checked')) {
                         $.post('', { 'job_id': '{{ job_id }}', 'start_date': '{{ start_date }}', 'end_date': '{{ end_date }}',
                                 'ignore_losses': 'true' }, parseData);
                     } else {
                         $.post('', { 'job_id': '{{ job_id }}', 'start_date': '{{ start_date }}', 'end_date': '{{ end_date }}' }, parseData);
                     }
-                });
+                }
+                
+                //Register the y-axis listener
+                $('#y-axis').click(respectYAxis);
+                
+                //Register the ignore losses listener
+                $('#ignore_losses').click(ignoreLosses);
+                
+                //Handle the y-axis checkbox right after charting
+                respectYAxis();
             }
         }
         
