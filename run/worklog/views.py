@@ -325,7 +325,7 @@ class ReportView(TemplateView):
 class ChartView(TemplateView):
     template_name = 'worklog/chart.html'
 
-    @method_decorator(csrf_exempt)
+    #@method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         return super(ChartView, self).dispatch(*args, **kwargs)
     
@@ -335,13 +335,18 @@ class ChartView(TemplateView):
         if 'job_id' in request.GET:
             job_id = request.GET['job_id']
             
-            if 'start_date' in request.GET and 'end_date' in request.GET:
+            if 'start_date' in request.GET:
                 start_date = request.GET['start_date']
-                end_date = request.GET['end_date']
-                
-                context['start_date'] = start_date
-                context['end_date'] = end_date
+            else:
+                start_date = None
             
+            if 'end_date' in request.GET:
+                end_date = request.GET['end_date']
+            else:
+                end_date = None
+                
+            context['start_date'] = start_date
+            context['end_date'] = end_date
             context['job_id'] = job_id
             
             return self.render_to_response(context)
@@ -356,18 +361,20 @@ class ChartView(TemplateView):
         end_date = None
         
         # Make sure the use selected a job
-        if job_id == u'-1':
-            error = { }
-            error['error'] = 'Invalid job selection'
-            return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+        if job_id == '-1':
+            return self.error('Invalid job selection')
+            #error = { }
+            #error['error'] = 'Invalid job selection'
+            #return HttpResponse(simplejson.dumps(data), mimetype='application/json')
         
         # Check if the job doesnt exist due to a bad param
         try:
             job = Job.objects.get(pk=job_id)
         except:
-            error = { }
-            error['error'] = 'Job with id %s does not exit' % job_id
-            return HttpResponse(simplejson.dumps(error), mimetype='application/json')
+            return self.error('Job with id %s does not exist' % job_id)
+            #error = { }
+            #error['error'] = 'Job with id %s does not exist' % job_id
+            #return HttpResponse(simplejson.dumps(error), mimetype='application/json')
         
         if job is not None:
             data = {}
@@ -385,46 +392,75 @@ class ChartView(TemplateView):
                 work_items = None
             
             # Try to convert the dates given
-            if 'start_date' in request.POST and 'end_date' in request.POST:
-                if len(request.POST['start_date']) > 0 and len(request.POST['end_date']) > 0:
+            if 'start_date' in request.POST:
+                if len(request.POST['start_date']) > 0:
                     try:
                         start_date = datetime.datetime.strptime(request.POST['start_date'], '%m/%d/%Y').date()
-                        end_date = datetime.datetime.strptime(request.POST['end_date'], '%m/%d/%Y').date()
                     except ValueError:
-                        error = { }
-                        error['error'] = 'Enter a valid date format'
-                        return HttpResponse(simplejson.dumps(error), mimetype='application/json')
-            
-            # If the dates were not given, start at the first available funding and end at the last work item
-            if start_date is None and end_date is None:
-                if work_items is not None:
-                    first_work = work_items.order_by('date')[0].date
-                    last_work = work_items.latest('date').date
-                    
-                    if funding is None:
-                        start_date = first_work
-                        end_date = last_work
+                        return self.error('Enter a valid date format for the start date')
+                        #error = { }
+                        #error['error'] = 'Enter a valid date format'
+                        #return HttpResponse(simplejson.dumps(error), mimetype='application/json')
+                else:
+                    if funding is None and work_items is None:
+                        return self.error('There is no work or funding available for job %s' % job)
                     else:
-                        first_funding = funding.order_by('date_available')[0].date_available
-                        last_funding = funding.latest('date_available').date_available
-                
+                        if funding is not None:
+                            first_funding = funding.order_by('date_available')[0].date_available
+                        else:
+                            first_funding = None
+                        
+                        if work_items is not None:
+                            first_work = work_items.order_by('date')[0].date
+                        else:
+                            first_work = None
+                    
+                    if first_work is not None and first_funding is not None:
                         if first_work > first_funding:
                             start_date = first_funding
                         else:
                             start_date = first_work
-                
+                    elif first_work is None and first_funding is not None:
+                        start_date = first_funding
+                    elif first_work is not None and first_funding is None:
+                        start_date = first_work
+                    else:
+                        return self.error('There is no work or funding available for job %s' % job)
+            
+            if 'end_date' in request.POST:
+                if len(request.POST['end_date']) > 0:
+                    try:
+                         end_date = datetime.datetime.strptime(request.POST['end_date'], '%m/%d/%Y').date()
+                    except ValueError:
+                         return self.error('Enter a valid date format for the end date')
+                         #error = { }
+                         #error['error'] = 'Enter a valid date format'
+                         #return HttpResponse(simplejson.dumps(error), mimetype='application/json')
+                else:
+                    if funding is None and work_items is None:
+                        return self.error('There is no work or funding available for job %s' % job)
+                    else:
+                        if funding is not None:
+                            last_funding = funding.latest('date_available').date_available
+                        else:
+                            last_funding = None
+                        
+                        if work_items is not None:
+                            last_work = work_items.latest('date').date
+                        else:
+                            last_work = None
+                            
+                    if last_work is not None and last_funding is not None:
                         if last_work < last_funding:
                             end_date = last_funding
                         else:
                             end_date = last_work
-                else:
-                    if funding is not None:
-                        start_date = funding.order_by('date_available')[0].date_available
-                        end_date = funding.latest('date_available').date_available
+                    elif last_work is None and last_funding is not None:
+                        end_date = last_funding
+                    elif last_work is not None and last_funding is None:
+                        end_date = last_work
                     else:
-                        error = { }
-                        error['error'] = 'There is no work or funding available for job %s' % job
-                        return HttpResponse(simplejson.dumps(error), mimetype='application/json')
+                        return self.error('There is no work or funding available for job %s' % job)
                     
             # If, somehow, the dates were not set, do not continue
             if start_date is not None and end_date is not None:
@@ -435,40 +471,49 @@ class ChartView(TemplateView):
                 
                 # Make sure the dates were in a valid order
                 if days < 0:
-                    error = { }
-                    error['error'] = 'Start date has to be before end date'
-                    return HttpResponse(simplejson.dumps(error), mimetype='application/json')
+                    return self.error('Start date has to be before end date')
+                    #error = { }
+                    #error['error'] = 'Start date has to be before end date'
+                    #return HttpResponse(simplejson.dumps(error), mimetype='application/json')
                 else:
                     # We need to calculate the hours since the first available funding
                     # or first work item
                     if work_items is not None:
                         work_date = work_items.order_by('date')[0].date
-                        initial_date = work_date
                     else:
                         work_date = None
                         
-                        if funding is not None:
-                            funding_date = funding.order_by('date_available')[0].date_available
-                            
-                            if work_date is None or funding_date < work_date:
-                                initial_date = funding_date
-                            else:
-                                initial_date = work_date
+                    if funding is not None:
+                        funding_date = funding.order_by('date_available')[0].date_available
+                    else:
+                        funding_date = None    
+                        
+                    if work_date is not None and funding_date is not None:
+                        if funding_date < work_date:
+                            initial_date = funding_date
                         else:
-                            error = { }
-                            error['error'] = 'There is no work or funding available for job %s' % job
-                            return HttpResponse(simplejson.dumps(error), mimetype='application/json')
+                            initial_date = work_date
+                    elif funding_date is None and work_date is not None:
+                        initial_date = work_date
+                    elif work_date is None and funding_date is not None:
+                        initial_date = funding_date
+                    else:
+                        return self.error('There is no work or funding available for job %s' % job)
+                        #error = { }
+                        #error['error'] = 'There is no work or funding available for job %s' % job
+                        #return HttpResponse(simplejson.dumps(error), mimetype='application/json')
                     
                     initial_days = (start_date - initial_date).days
                     
                     # If we have a difference between the initial date and start date
                     # then we need to calculate up to the initial days
                     if initial_days > 0:
+                        import pdb; pdb.set_trace()
                         if funding is not None:
                             initial_hours = funding.order_by('date_available')[0].hours
                         else:
                             initial_hours = 0
-                        
+                        initial_hours = 0
                         for n in range(initial_days):
                             if work_items is not None:
                                 for work_item in work_items.filter(date=initial_date):
@@ -495,13 +540,20 @@ class ChartView(TemplateView):
 
                     return HttpResponse(simplejson.dumps(data), mimetype='application/json')
             else:
-                error = { }
-                error['error'] = 'Dates could not be processed'
-                return HttpResponse(simplejson.dumps(error), mimetype='application/json')
+                return self.error('Dates could not be processed')
+                #error = { }
+                #error['error'] = 'Dates could not be processed'
+                #return HttpResponse(simplejson.dumps(error), mimetype='application/json')
         else:
-            error = { }
-            error['error'] = 'That job does not exist'
-            return HttpResponse(simplejson.dumps(error), mimetype='application/json')  
+            return self.error('That job does not exist')
+            #error = { }
+            #error['error'] = 'That job does not exist'
+            #return HttpResponse(simplejson.dumps(error), mimetype='application/json')  
+    
+    def error(self, message):
+        error = { }
+        error['error'] = message
+        return HttpResponse(simplejson.dumps(error), mimetype='application/json')  
     
     def get_context_data(self, **kwargs):
         context = super(ChartView, self).get_context_data()
