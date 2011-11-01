@@ -508,7 +508,6 @@ class ChartView(TemplateView):
                     # If we have a difference between the initial date and start date
                     # then we need to calculate up to the initial days
                     if initial_days > 0:
-                        import pdb; pdb.set_trace()
                         if funding is not None:
                             initial_hours = funding.order_by('date_available')[0].hours
                         else:
