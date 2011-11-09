@@ -309,7 +309,9 @@ class ReportView(TemplateView):
             #send_task("tasks.generate_invoice")
             return self.render_to_response({'generated': True})
         elif 'invoice' in request.POST:
-            jobs = Job.objects.filter(billing_schedule__date=kwargs.get('date', None))
+            date = datetime.date.today()
+            jobs = Job.objects.filter(billing_schedule__date__lte=date)
+            import pdb; pdb.set_trace();
             for job in jobs:
                 work_items = WorkItem.objects.filter(job=job, invoiced=False).exclude(do_not_invoice=True)
                 for items in work_items:

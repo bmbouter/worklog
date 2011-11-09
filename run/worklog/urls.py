@@ -31,6 +31,6 @@ urlpatterns = patterns('worklog',
 )
 
 urlpatterns += patterns('worklog',
-    url(r'^view/report/(?P<date>\d{4}-\d{2}-\d{2})/$', login_required(ReportView.as_view()), name='report_url'),
-    url(r'^chart/', login_required(ChartView.as_view()), name='chart_url')
+    url(r'^report/$', login_required(ReportView.as_view()), name='report_url'),
+    url(r'^chart/$', login_required(ChartView.as_view()), name='chart_url')
 )

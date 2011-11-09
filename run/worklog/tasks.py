@@ -22,40 +22,69 @@ URL: %(url)s
 
 """
 
-registry = TaskRegistry()
+#registry = TaskRegistry()
 
 ##submit_log_url = "http://opus-dev.cnl.ncsu.edu:7979/worklog/add/reminder_%s"
 
 # Generate at 2 AM daily during the week
 @periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))
 def generate_invoice():
-    date = datetime.datetime.now()
-    email_msgs = []
-    billable_jobs = Job.objects.filter(billing_schedule__date=datetime.date(date.year, date.month, date.day))
+    cal = calendar.Calendar(0)
+    billable_jobs = Job.objects.filter(billing_schedule__date__lte=datetime.date.today()).distinct()
     send_mail = True
 
     if billable_jobs:
+        job_work_items = []
+        count = 0
+        
         for job in billable_jobs:
-            work_items = WorkItem.objects.filter(job=job, invoiced=False).exclude(do_not_invoice=True)
-
+            work_items = WorkItem.objects.filter(job=job, invoiced=False).exclude(do_not_invoice=True).distinct().order_by('date')
+            
             if work_items:
-                send_mail = True
-                weeks = calendar.Calendar(0).monthdatescalendar(date.year, date.month)
-                week_of = '%s/%s/%s'
-
-                for week in weeks:
-                    if datetime.date(date.year, date.month, date.day) in week:
-                        week_of = week_of % (week[0].month, week[0].day, week[0].year)
-
-                job_msg = "%s\n\tDate: Week of %s\n\t\t" % (job.name, week_of)
-                work_item_msgs = []
-
-                for item in work_items:
-                    msg = '%s, %s\n' % (item.hours, item.text)
-                    work_item_msgs.append(msg)
-
-                msg = job_msg + ('\t\t').join(work_item_msgs)
-                email_msgs.append(msg)
+                first_date = work_items[0].date
+                last_work_item = work_items.order_by('-date')[0]
+                
+                if last_work_item.date < datetime.date.today():
+                    end_date = last_work_item.date
+                else:
+                    end_date = datetime.date.today()
+                    
+                days = (end_date - first_date).days
+                
+                week_of_str = '%s/%s/%s'
+                job_msg_str = '\n%s (%s)'
+                
+                total_hours = 0
+                weekly_work_items = []
+                
+                while first_date < end_date:
+                    count += 1
+                    month = calendar.monthcalendar(first_date.year, first_date.month)
+                
+                    for week in month:
+                        work_item_msgs = []
+                        days = [day for day in week if day != 0]
+                        date = datetime.date(first_date.year, first_date.month, days[0])
+                    
+                        if date.weekday == 0 or date.day == days[0]:
+                            week_of = week_of_str % (date.month, date.day, date.year)
+                            work_item_msgs.append(week_of)
+                    
+                        for day in week:
+                            if day != 0:
+                                items = work_items.filter(date=date)
+                    
+                                for item in items:
+                                    total_hours += item.hours
+                                    work_item_msg = '\t\t%s hours, %s on %s' % (item.hours, item.text, date)
+                                    work_item_msgs.append(work_item_msg)
+                
+                                date += datetime.timedelta(days=1)
+                        
+                        first_date = date
+                        weekly_work_items.append(work_item_msgs)
+                        
+                job_work_items.append((job_msg_str % (job.name, total_hours), weekly_work_items,)); #import pdb; pdb.set_trace()
             else:
                 send_mail = False
     else:
@@ -63,14 +92,37 @@ def generate_invoice():
     
     if send_mail:
         sub = 'Invoice'
+        date_str = '\n\tDate: Week of %s\n'
+        email_msgs = []
+        
+        # a list of tuples (job, work items in a month)
+        for item in job_work_items:
+            job_msgs = []
+            job = item[0]
+            entries = item[1]
+            
+            # a list where the first entry is the week and the rest are work items
+            for entry in entries:
+                if len(entry) > 1:
+                    date = date_str % entry[0]
+                    work_item_msgs = []
+                    
+                    # loop through the work items
+                    for work in entry[1:]:
+                        work_item_msgs.append(work)
+                    
+                    job_msgs.append(date + ('\n').join(work_item_msgs))
+            
+            email_msgs.append(job + ('').join(job_msgs))
+        
         msg = ('\n').join(email_msgs)
+        
         recipients = []
-                
+        
         for admin in settings.ADMINS:
             recipients.append(admin[1])
 
         django.core.mail.send_mail(sub, msg, '', recipients)
-
 
 def compose_reminder_email(email_address, id, date):
     subj = "Remember to Submit Today's Worklog (%s)"%str(date)
@@ -137,4 +189,4 @@ def test_send_reminder_email(username, date=datetime.date.today()):
     django.core.mail.send_mail(subj, msg, from_email, recipients, fail_silently=False)
 
 
-registry.register(generate_invoice)
+#registry.register(generate_invoice)
