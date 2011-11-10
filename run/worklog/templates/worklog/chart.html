@@ -85,7 +85,7 @@
             
                 c.displayLineChart();
                 c.enableOverview('#overview');
-            
+                
                 drawAxes();
                 
                 function respectYAxis() {
@@ -112,7 +112,7 @@
                     } else {
                         if('min' in options.yaxis) {
                             delete options.yaxis.min;
-                        } else if('max' in options.yaxis)
+                        } else if('max' in options.yaxis) {
                             delete options.yaxis.max;
                         } else {
                             changed = false;
@@ -155,7 +155,6 @@
             });
             
             $('#chartingForm').submit(function(e) {
-                console.log($('#chartingForm').serialize());
                 e.preventDefault();
                 e.stopPropagation();
                 
@@ -164,7 +163,7 @@
                 if($('#jobs').val() === '-1') {
                     $('#plot').after('<div class="error">Select a job</div>');
                 } else {
-                    $.post('', $(this).serialize(), parseData);
+                    $.post('', $(this).serialize(), parseData, 'json');
                 }
             });
         });
@@ -233,8 +232,6 @@
     <div id="options">
         <label for="y-axis">Show Y-Axis</label>
         <input type="checkbox" id="y-axis" /><br />
-        <label for="ignore_losses">Ignore losses</label>
-        <input type="checkbox" id="ignore_losses"><br />
         <div id="overview" style="margin-top: 15px; width: 300px; height: 80px; float: left"></div>
     </div>
 </body>
