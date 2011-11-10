@@ -32,18 +32,22 @@ def generate_invoice():
     cal = calendar.Calendar(0)
     billable_jobs = Job.objects.filter(billing_schedule__date__lte=datetime.date.today()).distinct()
     send_mail = True
-
+    
+    # continue only if we can bill jobs
     if billable_jobs:
         job_work_items = []
-        count = 0
         
+        # loop through all the jobs
         for job in billable_jobs:
             work_items = WorkItem.objects.filter(job=job, invoiced=False).exclude(do_not_invoice=True).distinct().order_by('date')
             
+            # continue only if we have work items
             if work_items:
+                # start at the first work item date
                 first_date = work_items[0].date
                 last_work_item = work_items.order_by('-date')[0]
                 
+                # end at the last work item or today (billing date)
                 if last_work_item.date < datetime.date.today():
                     end_date = last_work_item.date
                 else:
@@ -57,34 +61,41 @@ def generate_invoice():
                 total_hours = 0
                 weekly_work_items = []
                 
+                # continue to calculate hours until we reach the end date
                 while first_date < end_date:
-                    count += 1
+                    # used to grab weeks in a month; this will stagger the starting weeks of certain months
                     month = calendar.monthcalendar(first_date.year, first_date.month)
-                
-                    for week in month:
-                        work_item_msgs = []
-                        days = [day for day in week if day != 0]
-                        date = datetime.date(first_date.year, first_date.month, days[0])
                     
+                    for week in month:
+                        weekly_hours = 0
+                        work_item_msgs = []
+                        days = [day for day in week if day != 0] # we need the first day of the month
+                        date = datetime.date(first_date.year, first_date.month, days[0])
+                        
+                        # if its the first day of the week, set the week of string
                         if date.weekday == 0 or date.day == days[0]:
                             week_of = week_of_str % (date.month, date.day, date.year)
                             work_item_msgs.append(week_of)
-                    
+                        
+                        # calculate the work for each day
                         for day in week:
                             if day != 0:
                                 items = work_items.filter(date=date)
-                    
+                                
                                 for item in items:
                                     total_hours += item.hours
+                                    weekly_hours += item.hours
                                     work_item_msg = '\t\t%s hours, %s on %s' % (item.hours, item.text, date)
                                     work_item_msgs.append(work_item_msg)
-                
+                                   
                                 date += datetime.timedelta(days=1)
                         
+                        # adjust the first date for loop check and add the weekly hours to the week
                         first_date = date
+                        work_item_msgs[0] += ' (%s)' % weekly_hours
                         weekly_work_items.append(work_item_msgs)
                         
-                job_work_items.append((job_msg_str % (job.name, total_hours), weekly_work_items,)); #import pdb; pdb.set_trace()
+                job_work_items.append((job_msg_str % (job.name, total_hours), weekly_work_items,));
             else:
                 send_mail = False
     else:
@@ -116,6 +127,8 @@ def generate_invoice():
             email_msgs.append(job + ('').join(job_msgs))
         
         msg = ('\n').join(email_msgs)
+        
+        msg += '\n\nReport tools: %s' % app_settings.WORKLOG_EMAIL_LINK_URLBASE + urlreverse('report_url')
         
         recipients = []
         
