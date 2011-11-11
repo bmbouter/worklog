@@ -129,11 +129,25 @@
                     }
                 }
                 
+                function respectTooltips() {
+                    if($('#tooltips').attr('checked')) {
+                        c.enableTooltips();
+                    } else {
+                        c.disableTooltips();
+                    }
+                }
+                
                 //Register the y-axis listener
                 $('#y-axis').click(respectYAxis);
                 
+                //Register the tooltips listener
+                $('#tooltips').click(respectTooltips);
+                
                 //Handle the y-axis checkbox right after charting
                 respectYAxis();
+                
+                //Handle the tooltips checkbox right after charting
+                respectTooltips();
             }
         }
         
@@ -237,6 +251,8 @@
     <div id="options">
         <label for="y-axis">Show Y-Axis</label>
         <input type="checkbox" id="y-axis" /><br />
+        <label for="tooltips">Show Worklog Entries</label>
+        <input type="checkbox" id="tooltips" /><br />
         <div id="overview" style="margin-top: 15px; width: 300px; height: 80px; float: left"></div>
     </div>
 </body>
