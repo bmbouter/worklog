@@ -357,7 +357,9 @@ function Chart(loc, d, opt) {
                                     + work_item.fields.hours + '<br /><br />';
                             }
                             
-                            showTooltip(item.pageX, item.pageY, str);
+                            if(data.length !== 0) {
+                                showTooltip(item.pageX, item.pageY, str);
+                            }
                         });
                     } else {
                         showTooltip(item.pageX, item.pageY, item.series.label + ': ' + y);
