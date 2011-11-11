@@ -6,6 +6,7 @@ import re
 from celery.execute import send_task
 
 from django.utils import simplejson
+from django.core import serializers
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -13,7 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.auth.models import User
-from django.views.generic import TemplateView
+from django.views.generic import View, TemplateView
 from django.conf import settings
 
 from worklog.forms import WorkItemForm
@@ -358,6 +359,7 @@ class ChartView(TemplateView):
     
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs);
+        
         job_id = request.POST['job_id']
         start_date = None
         end_date = None
@@ -566,4 +568,28 @@ class ChartView(TemplateView):
 
     def render_to_response(self, context):
         return TemplateView.render_to_response(self, context)
+
+
+class JobDataView(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super(JobDataView, self).dispatch(*args, **kwargs)
+    
+    def post(self, request, *args, **kwargs):
+        if 'date' in request.POST and 'job_id' in request.POST:
+            job_id = request.POST['job_id']
+            date_in_millis = str(request.POST['date'])
+            
+            if '.' in date_in_millis:
+                date_in_millis = int(str(date_in_millis).split('.')[0])
+            
+            # Look into why this is occurring
+            # The milliseconds are a whole day behind, add one day
+            date = datetime.datetime.fromtimestamp(date_in_millis//1000) + datetime.timedelta(days=1)
+            work_items = WorkItem.objects.filter(job__pk=job_id, date=date.date())
+            data = serializers.serialize('json', work_items)
+            
+            return HttpResponse(data, mimetype='application/json')
+
+
 

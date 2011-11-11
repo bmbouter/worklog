@@ -23,6 +23,9 @@
             }
         };
         
+        var jobDataUrl = '{% url job_data_url %}';
+        var jobId = '';
+        
         function parseData(data, status, xhr) {
             if('error' in data) {
                 $('#plot').after('<div class="error">' + data['error'] + '</div>');
@@ -163,6 +166,7 @@
                 if($('#jobs').val() === '-1') {
                     $('#plot').after('<div class="error">Select a job</div>');
                 } else {
+                    jobId = $('#jobs > optgroup > option:selected').val();
                     $.post('', $(this).serialize(), parseData, 'json');
                 }
             });
@@ -201,6 +205,7 @@
         {% if job_id %}
             <script type="text/javascript">
                 $(document).ready(function() {
+                    jobId = '{{ job_id }}'
                     $('#jobs > optgroup > option[value={{ job_id }}]').attr('selected', 'selected');
                     $('#chartingForm').submit();
                 });

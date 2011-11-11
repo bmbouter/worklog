@@ -347,8 +347,18 @@ function Chart(loc, d, opt) {
                     var y = item.datapoint[1].toFixed(2);
                     
                     if(typeOfChart == 'line') {
-                        showTooltip(item.pageX, item.pageY,
-                            item.series.label + ': (' + x + ', ' + y + ')');
+                        $.post(jobDataUrl, {'date': x, 'job_id': jobId}, function(data, success, xhr) {
+                            var str = '';
+                            
+                            for(var d in data) {
+                                var work_item = data[d];
+                                
+                                str += 'Desc: ' + work_item.fields.text + '<br />&nbsp;&nbsp;Hours worked: ' 
+                                    + work_item.fields.hours + '<br /><br />';
+                            }
+                            
+                            showTooltip(item.pageX, item.pageY, str);
+                        });
                     } else {
                         showTooltip(item.pageX, item.pageY, item.series.label + ': ' + y);
                     }
