@@ -28,6 +28,7 @@ URL: %(url)s
 
 ##submit_log_url = "http://opus-dev.cnl.ncsu.edu:7979/worklog/add/reminder_%s"
 
+# Generate at 2 AM daily and check if the work period is over
 @periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))
 def generate_timesheets():
     if WorkPeriod.objects.filter(end_date=datetime.date.today()).count() > 0:

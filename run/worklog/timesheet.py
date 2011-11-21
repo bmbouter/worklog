@@ -73,6 +73,7 @@ def get_timesheet_weeks(weeks):
 
     return weeks_str
 
+# Return the header of the document containing employee information
 def get_header(employee, work_period):
     d_format = '%m/%d/%y'
 
@@ -90,6 +91,7 @@ def get_header(employee, work_period):
 
     return msg
 
+# Generates the timesheet for all biweekly employees in the system
 def run():
     if WorkPeriod.objects.filter(end_date=date.date.today()).count() > 0:
         msg = []
@@ -105,13 +107,14 @@ def run():
     else:
         return 'There is no work to report'
 
+# Sends the email to the admins listed in settings
 def generate_email():
     sub = 'Bi-weekly Timesheets'
     recipients = []
     msg = run()
 
     for admin in settings.ADMINS:
-            recipients.append(admin[1])
+        recipients.append(admin[1])
 
     django.core.mail.send_mail(sub, msg, '', recipients)
 
