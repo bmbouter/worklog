@@ -5,11 +5,19 @@
 <title></title>
 <style type="text/css" media="screen">
   .formtable th { text-align: right; vertical-align: top; }
+
+  h3 {
+    color: #FF0000;
+  }
 </style>
 </head>
 
 <body>
 <h2>Add a new Work Item</h2>
+{% if holidays %}
+<h3>Today is a holiday. Work item hours will not count towards timesheet.</h3>
+{% endif %}
+
 {% if form %}
   <h4>For: {{ date|date:"DATE_FORMAT" }}</h4>
   

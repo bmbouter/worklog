@@ -7,6 +7,7 @@ import operator
 
 from django.db.models import Sum
 from worklog.models import WorkItem, Job, WorkLogReminder, BillingSchedule, Funding
+from worklog.models import BiweeklyEmployee, Holiday, WorkPeriod
 
 
 def mark_invoiced(modeladmin, request, queryset):
@@ -91,7 +92,18 @@ class JobAdmin(admin.ModelAdmin):
         FundingInline,
     ]
 
+class WorkPeriodAdmin(admin.ModelAdmin):
+    list_display = ('payroll_id', 'start_date', 'end_date',)
+    list_filter = ('start_date', 'end_date',)
+
+class HolidayAdmin(admin.ModelAdmin):
+    list_display = ('description', 'start_date', 'end_date',)
+    list_filter = ('start_date', 'end_date',)
+
 admin.site.register(WorkItem, WorkItemAdmin)
 admin.site.register(Job, JobAdmin)
 admin.site.register(WorkLogReminder)
 
+admin.site.register(BiweeklyEmployee)
+admin.site.register(WorkPeriod, WorkPeriodAdmin)
+admin.site.register(Holiday, HolidayAdmin)

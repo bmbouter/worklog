@@ -6,7 +6,9 @@ from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse as urlreverse
 import django.core.mail
-from worklog.models import WorkItem, WorkLogReminder, Job
+
+from worklog import timesheet
+from worklog.models import WorkItem, WorkLogReminder, Job, WorkPeriod
 
 import app_settings
 
@@ -25,6 +27,11 @@ URL: %(url)s
 #registry = TaskRegistry()
 
 ##submit_log_url = "http://opus-dev.cnl.ncsu.edu:7979/worklog/add/reminder_%s"
+
+@periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))
+def generate_timesheets():
+    if WorkPeriod.objects.filter(end_date=datetime.date.today()).count() > 0:
+        timesheet.generate_email()
 
 # Generate at 2 AM daily during the week
 @periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))

@@ -4,6 +4,33 @@ from django.contrib.auth.models import User
 
 import worklog.admin_filter
 
+class BiweeklyEmployee(models.Model):
+    user = models.ForeignKey(User)
+    univ_id = models.CharField(max_length=9, verbose_name='University ID')
+
+    def get_timesheet_name(self):
+        return '%s, %s' % (self.user.last_name, self.user.first_name,)
+
+    def __unicode__(self):
+        return '%s' % self.user.get_full_name()
+
+class Holiday(models.Model):
+    description = models.CharField(max_length=255)
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    def __unicode__(self):
+        return '%s' % (self.description,)
+
+class WorkPeriod(models.Model):
+    payroll_id = models.CharField(max_length=8)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    due_date = models.DateField()
+    pay_day = models.DateField()
+
+    def __unicode__(self):
+        return '%s' % (self.payroll_id,)
 
 class Job(models.Model):
     name = models.CharField(max_length=256)

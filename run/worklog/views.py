@@ -18,7 +18,7 @@ from django.views.generic import View, TemplateView
 from django.conf import settings
 
 from worklog.forms import WorkItemForm
-from worklog.models import WorkItem, WorkLogReminder, Job, Funding
+from worklog.models import WorkItem, WorkLogReminder, Job, Funding, Holiday, BiweeklyEmployee
 from worklog.tasks import generate_invoice
 
 # 'columns' determines the layout of the view table
@@ -86,10 +86,16 @@ def createWorkItem(request, reminder_id=None):
     items = WorkItem.objects.filter(date=date, user=request.user)
     rawitems = list(tuple(_itercolumns(item)) for item in items)
 
+    if BiweeklyEmployee.objects.filter(user=request.user).count() > 0:
+        holidays = Holiday.objects.filter(start_date__gte=date, end_date__lte=date)
+    else:
+        holidays = None
+
     return render_to_response('worklog/workform.html',
             {'form': form, 'reminder_id': reminder_id, 'date': date,
              'items': rawitems, 
-             'column_names': list(t for k,t in _column_layout)
+             'column_names': list(t for k,t in _column_layout),
+             'holidays': holidays
             },
             context_instance=RequestContext(request)
         )
