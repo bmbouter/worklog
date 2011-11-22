@@ -15,10 +15,10 @@ class Migration(SchemaMigration):
         db.add_column('worklog_workperiod', 'payroll_id', self.gf('django.db.models.fields.CharField')(default=1, max_length=8), keep_default=False)
 
         # Adding field 'WorkPeriod.due_date'
-        db.add_column('worklog_workperiod', 'due_date', self.gf('django.db.models.fields.DateField')(default=1), keep_default=False)
+        db.add_column('worklog_workperiod', 'due_date', self.gf('django.db.models.fields.DateField')(default=datetime.date(2011, 11, 18)), keep_default=False)
 
         # Adding field 'WorkPeriod.pay_day'
-        db.add_column('worklog_workperiod', 'pay_day', self.gf('django.db.models.fields.DateField')(default=1), keep_default=False)
+        db.add_column('worklog_workperiod', 'pay_day', self.gf('django.db.models.fields.DateField')(default=datetime.date(2011, 11, 18)), keep_default=False)
 
 
     def backwards(self, orm):
