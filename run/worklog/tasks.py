@@ -31,7 +31,7 @@ URL: %(url)s
 # Generate at 2 AM daily and check if the work period is over
 @periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))
 def generate_timesheets():
-    if WorkPeriod.objects.filter(end_date=datetime.date.today()).count() > 0:
+    if WorkPeriod.objects.filter(due_date=datetime.date.today()).count() > 0:
         timesheet.generate_email()
 
 # Generate at 2 AM daily during the week
