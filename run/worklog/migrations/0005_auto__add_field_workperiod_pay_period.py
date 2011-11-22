@@ -9,7 +9,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         
         # Adding field 'WorkPeriod.pay_period'
-        db.add_column('worklog_workperiod', 'pay_period', self.gf('django.db.models.fields.related.ForeignKey')(default=datetime.date(2011, 11, 18), to=orm['worklog.PayPeriod']), keep_default=False)
+        db.add_column('worklog_workperiod', 'pay_period', self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['worklog.PayPeriod']), keep_default=False)
 
 
     def backwards(self, orm):
