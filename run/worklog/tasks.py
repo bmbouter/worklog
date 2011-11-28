@@ -35,11 +35,11 @@ def generate_timesheets():
         timesheet.generate_email(WorkPeriod.objects.get(due_date=datetime.date.today()).pk)
 
 # Generate at 2 AM daily during the week
-@periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))
+#@periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))
 def generate_invoice():
     cal = calendar.Calendar(0)
     billable_jobs = Job.objects.filter(billing_schedule__date__lte=datetime.date.today()).distinct()
-    send_mail = True
+    send_mail = False
     
     # continue only if we can bill jobs
     if billable_jobs:
@@ -51,6 +51,9 @@ def generate_invoice():
             
             # continue only if we have work items
             if work_items:
+                # send email if we have work items
+                send_mail = True
+
                 # start at the first work item date
                 first_date = work_items[0].date
                 last_work_item = work_items.order_by('-date')[0]
@@ -104,10 +107,6 @@ def generate_invoice():
                         weekly_work_items.append(work_item_msgs)
                         
                 job_work_items.append((job_msg_str % (job.name, total_hours), weekly_work_items,));
-            else:
-                send_mail = False
-    else:
-        send_mail = False
     
     if send_mail:
         sub = 'Invoice'
