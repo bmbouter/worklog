@@ -32,7 +32,7 @@ URL: %(url)s
 @periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))
 def generate_timesheets():
     if WorkPeriod.objects.filter(due_date=datetime.date.today()).count() > 0:
-        timesheet.generate_email()
+        timesheet.generate_email(WorkPeriod.objects.get(due_date=datetime.date.today()).pk)
 
 # Generate at 2 AM daily during the week
 @periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))

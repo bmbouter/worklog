@@ -92,12 +92,12 @@ def get_header(employee, work_period):
     return msg
 
 # Generates the timesheet for all biweekly employees in the system
-def run():
-    if WorkPeriod.objects.filter(end_date=date.date.today()).count() > 0:
+def run(workperiod_id):
+    if WorkPeriod.objects.filter(pk=workperiod_id).count() > 0:
         msg = []
 
         for employee in BiweeklyEmployee.objects.all():
-            for work_period in WorkPeriod.objects.filter(end_date=date.date.today()):
+            for work_period in WorkPeriod.objects.filter(pk=workperiod_id):
                 header = get_header(employee, work_period)
                 weeks = get_timesheet_weeks(get_hours(employee, work_period))
 
@@ -108,10 +108,10 @@ def run():
         return 'There is no work to report'
 
 # Sends the email to the admins listed in settings
-def generate_email():
+def generate_email(workperiod_id):
     sub = 'Bi-weekly Timesheets'
     recipients = []
-    msg = run()
+    msg = run(workperiod_id)
 
     for admin in settings.ADMINS:
         recipients.append(admin[1])
