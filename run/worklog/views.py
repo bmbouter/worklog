@@ -303,30 +303,47 @@ def viewWork(request, username=None, datemin=None, datemax=None):
 
 class ReportView(TemplateView):
     template_name = 'worklog/report.html'
-
+    
     def get_context_data(self, **kwargs):
         context = super(ReportView, self).get_context_data()
         context['date'] = kwargs.get('date', None)
 
         return context
 
-    def post(self, request, *args, **kwargs):
-        if 'generate' in request.POST:
-            generate_invoice.delay()
-            #send_task("tasks.generate_invoice")
-            return self.render_to_response({'generated': True})
-        elif 'invoice' in request.POST:
+    def get(self, request, *args, **kwargs):
+        if 'date' in request.GET:
+            try:
+                date = request.GET['date']
+                date_time = datetime.datetime.strptime(date, '%Y-%m-%d')
+            except ValueError:
+                date = datetime.date.today()
+                return self.render_to_response({
+                    'error': 'Date not correct format: yyyy-mm-dd. Using today as default date.',
+                    'date': date
+                })
+        else:
             date = datetime.date.today()
-            jobs = Job.objects.filter(billing_schedule__date__lte=date)
-            import pdb; pdb.set_trace();
+
+        return self.render_to_response({'date': date})
+
+    def post(self, request, *args, **kwargs):
+        date = request.POST['date']
+        
+        if 'generate' in request.POST:
+            generate_invoice.delay(date)
+            #send_task("tasks.generate_invoice")
+            return self.render_to_response({'generated': True, 'date': date})
+        elif 'invoice' in request.POST:
+            jobs = Job.objects.filter(billing_schedule__date=date)
+            
             for job in jobs:
-                work_items = WorkItem.objects.filter(job=job, invoiced=False).exclude(do_not_invoice=True)
+                work_items = WorkItem.objects.filter(job=job, invoiced=False, date__lt=date).exclude(do_not_invoice=True)
                 for items in work_items:
                     items.invoiced = True
                     items.save()
-            return self.render_to_response({'invoiced': True})
+            return self.render_to_response({'invoiced': True, 'date': date})
         else:
-            return self.render_to_response(self.get_context_data())
+            return self.render_to_response(self.get_context_data(**kwargs))
 
     def render_to_response(self, context):
         return TemplateView.render_to_response(self, context)

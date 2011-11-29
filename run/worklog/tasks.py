@@ -36,9 +36,14 @@ def generate_timesheets():
 
 # Generate at 2 AM daily during the week
 @periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))
-def generate_invoice():
+def generate_invoice(default_date=None):
+    if default_date is None:
+        default_date = datetime.date.today()
+    else:
+        default_date = datetime.datetime.strptime(default_date, '%Y-%m-%d').date()
+
     cal = calendar.Calendar(0)
-    billable_jobs = Job.objects.filter(billing_schedule__date__lte=datetime.date.today()).distinct()
+    billable_jobs = Job.objects.filter(billing_schedule__date=default_date).distinct()
     send_mail = False
     
     # continue only if we can bill jobs
@@ -47,7 +52,8 @@ def generate_invoice():
         
         # loop through all the jobs
         for job in billable_jobs:
-            work_items = WorkItem.objects.filter(job=job, invoiced=False).exclude(do_not_invoice=True).distinct().order_by('date')
+            work_items = WorkItem.objects.filter(job=job, invoiced=False, date__lt=default_date) \
+                .exclude(do_not_invoice=True).distinct().order_by('date')
             
             # continue only if we have work items
             if work_items:
@@ -135,7 +141,7 @@ def generate_invoice():
         
         msg = ('\n').join(email_msgs)
         
-        msg += '\n\nReport tools: %s' % app_settings.WORKLOG_EMAIL_LINK_URLBASE + urlreverse('report_url')
+        msg += '\n\nReport tools: %s?date=%s' % (app_settings.WORKLOG_EMAIL_LINK_URLBASE + urlreverse('report_url'), default_date)
         
         recipients = []
         

@@ -27,6 +27,9 @@
 
 <!-- Content -->
 <div class="content">
+  {% if error %}
+    {{ error }}
+  {% endif %}
   {% if generated %}
     <h1>An invoice was generated and emailed to you</h1>
   {% endif %}
@@ -35,6 +38,7 @@
   {% endif %}
   <form method="post" action="">
     {% csrf_token %}
+    <input type="hidden" name="date" value="{{ date }}" />
     <button type="submit" name="generate" value="generate" class="link">Generate report</button><br />
     <button type="submit" name="invoice" value="invoice" class="link">Invoice all items</button>
   </form>
