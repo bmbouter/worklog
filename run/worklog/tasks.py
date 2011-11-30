@@ -63,12 +63,7 @@ def generate_invoice(default_date=None):
                 # start at the first work item date
                 first_date = work_items[0].date
                 last_work_item = work_items.order_by('-date')[0]
-                
-                # end at the last work item or today (billing date)
-                if last_work_item.date < datetime.date.today():
-                    end_date = last_work_item.date
-                else:
-                    end_date = datetime.date.today()
+                end_date = last_work_item.date
                     
                 days = (end_date - first_date).days
                 
@@ -79,7 +74,7 @@ def generate_invoice(default_date=None):
                 weekly_work_items = []
                 
                 # continue to calculate hours until we reach the end date
-                while first_date < end_date:
+                while first_date <= end_date:
                     # used to grab weeks in a month; this will stagger the starting weeks of certain months
                     month = calendar.monthcalendar(first_date.year, first_date.month)
                     
