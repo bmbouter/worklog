@@ -322,7 +322,7 @@ class ReportView(TemplateView):
                     'date': date
                 })
         else:
-            date = datetime.date.today()
+            date = unicode(datetime.date.today())
 
         return self.render_to_response({'date': date})
 
