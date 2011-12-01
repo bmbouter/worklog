@@ -1,11 +1,21 @@
 import datetime as date
+import ho.pisa as pisa
+import cStringIO as StringIO
 
-from django.conf import settings
 import django.core.mail
+from django.core.mail import EmailMessage
+from django.conf import settings
+from django.http import HttpResponse
+from django.template import Context
+from django.template.loader import get_template
 
 from worklog.models import WorkItem, BiweeklyEmployee, Holiday, WorkPeriod
 
 days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+days_for_template = ['mon', 'tue', 'wed', 'thur', 'fri', 'sat', 'sun']
+
+context = { }
+template_name = 'worklog/timesheet.html'
 
 # Generate the paysheet data for a given BiweeklyEmployee and WorkPeriod
 # Returns a tuple of two lists where each list is a week in the work period
@@ -45,81 +55,109 @@ def get_weekly_hours(start_date, end_date, work_items, holidays):
     
     return week
 
-# Using a tuple of two weeks, return a formatted timesheet
-def get_timesheet_weeks(weeks):
-    weeks_str = ''
+def set_timesheet_weeks(weeks):
     total_hours = 0
 
     for week in weeks:
-        week_list = []
         week_total_hours = 0
 
         for day in week:
-            day_str = days[day[0].weekday()]
+            day_str = days_for_template[day[0].weekday()]
             hours = day[1]
             week_total_hours += hours
-            
+
+            week_str = '%sweek%d' % (day_str, (weeks.index(week) + 1),)
+            context[week_str] = '%s/%s' % (day[0].month, day[0].day)
+            context['%s_daily' % week_str] = hours
+
             if hours != 0:
                 start_hour = '8:00a'
                 end_hour = '%s:00p' % (8 + hours - 12) if 8 + hours > 12 else '%s:00a' % (8 + hours)
-                
-                week_list.append('%s (%s/%s)\nIn: %s\nOut: %s' % (day_str, day[0].month, day[0].day, \
-                    start_hour, end_hour,))
 
+                context['%s_start' % week_str] = start_hour
+                context['%s_end' % week_str] = end_hour
+        
+        context['week%d_total' % (weeks.index(week) + 1)] = week_total_hours
         total_hours += week_total_hours
-        weeks_str += '\n\n'.join(week_list) + '\n\nTotal hours worked this week: %s\n\n' % week_total_hours
-    
-    weeks_str += 'Total hours worked: %s' % total_hours
 
-    return weeks_str
+    context['total'] = total_hours
 
-# Return the header of the document containing employee information
-def get_header(employee, work_period):
+def set_header(employee, work_period):
     d_format = '%m/%d/%y'
 
-    name = 'Name: %s' % employee.get_timesheet_name()
-    id_num = 'ID#: %s' % employee.univ_id
-    work_beginning = 'Work Period Beginning: %s' % work_period.start_date.strftime(d_format)
-    work_ending = 'Work Period Ending: %s' % work_period.end_date.strftime(d_format)
-    prid = 'PRID: %s' % work_period.payroll_id
-    dept = 'Dept./Box#: %s' % 'CSC/8206' 
-    due_date = 'Time Sheet Due Date: %s' % work_period.due_date.strftime(d_format)
-    pay_day = 'Pay Day: %s' % work_period.pay_day.strftime(d_format)
+    context['name'] = '%s' % employee.get_timesheet_name()
+    context['id_num'] = '%s' % employee.univ_id
+    context['work_beginning'] = '%s' % work_period.start_date.strftime(d_format)
+    context['work_ending'] = '%s' % work_period.end_date.strftime(d_format)
+    context['prid'] = '%s' % work_period.payroll_id
+    context['dept'] = '%s' % 'CSC/8206' 
+    context['due_date'] = '%s' % work_period.due_date.strftime(d_format)
+    context['pay_day'] = '%s' % work_period.pay_day.strftime(d_format)
 
-    msg = '%s\t%s\t%s\t\t%s\n' % (name, work_beginning, prid, due_date)
-    msg += '%s\t\t%s\t%s\t%s\n' % (id_num, work_ending, dept, pay_day)
+def set_footer(employee):
+    context['project_num'] = employee.project_num
 
-    return msg
-
-# Generates the timesheet for all biweekly employees in the system
 def run(workperiod_id):
     if WorkPeriod.objects.filter(pk=workperiod_id).count() > 0:
-        msg = []
+        work_period = WorkPeriod.objects.get(pk=workperiod_id)
 
         for employee in BiweeklyEmployee.objects.all():
-            for work_period in WorkPeriod.objects.filter(pk=workperiod_id):
-                header = get_header(employee, work_period)
-                weeks = get_timesheet_weeks(get_hours(employee, work_period))
+            weeks = get_hours(employee, work_period)
+            set_header(employee, work_period)
+            set_timesheet_weeks(weeks)
+            set_footer(employee)
 
-                msg.append('\n'.join([header, weeks, '------------------------\n']))
-        
-        return '\n'.join(msg)
-    else:
-        return 'There is no work to report'
+            template = get_template(template_name)
+            html = template.render(Context(context))
+            result = StringIO.StringIO()
 
-# Sends the email to the admins listed in settings
-def generate_email(workperiod_id):
-    sub = 'Bi-weekly Timesheets'
+            pdf = pisa.pisaDocument(StringIO.StringIO(html.encode('ISO-8859-1')), dest=result)
+
+            if not pdf.err:
+                send_email(employee, result.getvalue())
+
+def send_email(employee, pdf):
+    subject = 'Timesheet for %s' % employee
     recipients = []
-    msg = run(workperiod_id)
 
     for admin in settings.ADMINS:
         recipients.append(admin[1])
+    
+    email = EmailMessage(
+        subject,
+        'Timesheet is attached',
+        '',
+        recipients,
+        attachments = [('timesheet.pdf', pdf, 'application/pdf',)]
+    )
 
-    django.core.mail.send_mail(sub, msg, '', recipients)
+    email.send()
 
+# View to generate a PDF for a given employee and work period
+def make_pdf(request, payroll_id, employee_id):
+    if WorkPeriod.objects.filter(pk=payroll_id).count() > 0:
+        employee = BiweeklyEmployee.objects.get(pk=employee_id)
+        work_period = WorkPeriod.objects.get(pk=payroll_id)
 
+        weeks = get_hours(employee, work_period)
+        set_header(employee, work_period)
+        set_timesheet_weeks(weeks)
+        set_footer(employee)
 
+        response = HttpResponse(mimetype='application/pdf')
+        response['Content-Disposition'] = 'filename=timesheet.pdf'
+
+        template = get_template(template_name)
+        html = template.render(Context(context))
+        result = StringIO.StringIO()
+
+        pdf = pisa.pisaDocument(StringIO.StringIO(html.encode('ISO-8859-1')), dest=result)
+
+        if not pdf.err:
+            response.write(result.getvalue())
+            return response
+        else:
+            return HttpResponse('Error!')
 
 
 

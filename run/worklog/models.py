@@ -7,6 +7,7 @@ import worklog.admin_filter
 class BiweeklyEmployee(models.Model):
     user = models.ForeignKey(User)
     univ_id = models.CharField(max_length=9, verbose_name='University ID')
+    project_num = models.CharField(max_length=255, verbose_name='Project #')
 
     def get_timesheet_name(self):
         return '%s, %s' % (self.user.last_name, self.user.first_name,)

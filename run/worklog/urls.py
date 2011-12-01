@@ -31,6 +31,7 @@ urlpatterns = patterns('worklog',
 )
 
 urlpatterns += patterns('worklog',
+    url(r'^pdf/(?P<payroll_id>\d+)/(?P<employee_id>\d+)/$', 'timesheet.make_pdf', {}, 'make_pdf_url'),
     url(r'^report/$', login_required(ReportView.as_view()), name='report_url'),
     url(r'^chart/$', login_required(ChartView.as_view()), name='chart_url'),
     url(r'^chart/job/$', login_required(JobDataView.as_view()), name='job_data_url')
