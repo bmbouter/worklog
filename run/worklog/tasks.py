@@ -97,7 +97,7 @@ def generate_invoice(default_date=None):
                                 for item in items:
                                     total_hours += item.hours
                                     weekly_hours += item.hours
-                                    work_item_msg = '\t\t%s hours, %s on %s' % (item.hours, item.text, date)
+                                    work_item_msg = '\t\t%s hours, %s' % (item.hours, item.text)
                                     work_item_msgs.append(work_item_msg)
                                    
                                 date += datetime.timedelta(days=1)
@@ -134,7 +134,7 @@ def generate_invoice(default_date=None):
             
             email_msgs.append(job + ('').join(job_msgs))
         
-        msg = ('\n').join(email_msgs)
+        msg = ('\n\n').join(email_msgs)
         
         msg += '\n\nReport tools: %s?date=%s' % (app_settings.WORKLOG_EMAIL_LINK_URLBASE + urlreverse('report_url'), default_date)
         
