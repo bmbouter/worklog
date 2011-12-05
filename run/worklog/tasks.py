@@ -34,8 +34,7 @@ def generate_timesheets():
     if WorkPeriod.objects.filter(due_date=datetime.date.today()).count() > 0:
         timesheet.run(WorkPeriod.objects.get(due_date=datetime.date.today()).pk)
 
-# Generate at 2 AM daily during the week
-@periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))
+@task
 def generate_invoice(default_date=None):
     if default_date is None:
         default_date = datetime.date.today()
@@ -145,6 +144,21 @@ def generate_invoice(default_date=None):
 
         django.core.mail.send_mail(sub, msg, '', recipients)
 
+# Generate invoices at 2 AM daily if they are needed
+@periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))
+def generate_invoice_email():
+    default_date = datetime.date.today()
+    billable_jobs = Job.objects.filter(billing_schedule__date=default_date).distinct()
+    
+    # continue only if we there are jobs to bill
+    if billable_jobs:
+        sub = 'Invoice'
+        msg = 'Report tools: %s?date=%s' % (app_settings.WORKLOG_EMAIL_LINK_URLBASE + urlreverse('report_url'), default_date)
+        recipients = []
+        for admin in settings.ADMINS:
+            recipients.append(admin[1])
+        django.core.mail.send_mail(sub, msg, '', recipients)
+
 def compose_reminder_email(email_address, id, date):
     subj = "Remember to Submit Today's Worklog (%s)"%str(date)
     expire_days =   app_settings.EMAIL_REMINDERS_EXPIRE_AFTER
@@ -209,5 +223,3 @@ def test_send_reminder_email(username, date=datetime.date.today()):
     
     django.core.mail.send_mail(subj, msg, from_email, recipients, fail_silently=False)
 
-
-#registry.register(generate_invoice)
