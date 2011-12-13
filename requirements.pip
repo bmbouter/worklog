@@ -5,3 +5,5 @@ nose
 git+git://github.com/cmheisel/nose-xcover.git#egg=nosexcover
 git+git://github.com/jbalogh/django-nose.git#egg=django-nose
 pylint
+xhtml2pdf
+pisa
