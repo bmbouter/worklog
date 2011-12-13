@@ -178,15 +178,23 @@ class TimesheetView(TemplateView):
     
     def post(self, request, *args, **kwargs):
         due_date = date.datetime.strptime(request.POST['date'], '%Y-%m-%d').date()
-
         work_period = WorkPeriod.objects.get(due_date=due_date)
-        employee = BiweeklyEmployee.objects.get(pk=request.POST['employee_id'])
-        pdf = get_pdf(employee, work_period)
-
-        send_email(employee, pdf)
-
         context = self.get_context_data(**kwargs)
-        context['success'] = 'Email with timesheet was sent'
+
+        if 'all_employees' in request.POST:
+            for employee in BiweeklyEmployee.objects.all():
+                pdf = get_pdf(employee, work_period)
+                send_email(employee, pdf)
+            
+            context['success'] = 'Emails with timesheets were sent'
+        else:
+            employee = BiweeklyEmployee.objects.get(pk=request.POST['employee_id'])
+            pdf = get_pdf(employee, work_period)
+
+            send_email(employee, pdf)
+
+            context['success'] = 'Email with timesheet was sent'
+        
         context['date'] = request.POST['date']
 
         return super(TimesheetView, self).render_to_response(context)

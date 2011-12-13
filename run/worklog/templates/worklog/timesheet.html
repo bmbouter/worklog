@@ -33,6 +33,11 @@
 			{% endfor %}
 		</select>
 		<input type="submit" value="Send Timesheet" />
+	</form><br />
+	<form id="timesheet_form_all" action="" method="post">
+		{% csrf_token %}
+		<input type="hidden" name="date" value="{{ date }}" />
+		<input type="submit" name="all_employees" value="Send All Timesheets" />
 	</form>
 	{% endif %}
 </div>
