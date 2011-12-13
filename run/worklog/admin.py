@@ -102,29 +102,10 @@ class HolidayAdmin(admin.ModelAdmin):
     list_display = ('description', 'start_date', 'end_date',)
     list_filter = ('start_date', 'end_date',)
 
-class BiweeklyEmployeeAdmin(admin.ModelAdmin):
-    change_form_template = 'admin/worklog/biweeklyemployee/change_view.html'
-
-    def get_urls(self):
-        urls = super(BiweeklyEmployeeAdmin, self).get_urls()
-        new_urls = patterns('',
-            (r'<?P(pk)\d+>/timesheet/$', self.admin_site.admin_view(timesheet.make_pdf))
-        )
-
-        return new_urls + urls
-    
-    def change_view(self, request, object_id, extra_context=None):
-        context = {
-            'workperiods': WorkPeriod.objects.all()
-        }
-
-        return super(BiweeklyEmployeeAdmin, self).change_view(request, object_id, extra_context=context)
-
-
 admin.site.register(WorkItem, WorkItemAdmin)
 admin.site.register(Job, JobAdmin)
 admin.site.register(WorkLogReminder)
 
-admin.site.register(BiweeklyEmployee, BiweeklyEmployeeAdmin)
+admin.site.register(BiweeklyEmployee)
 admin.site.register(WorkPeriod, WorkPeriodAdmin)
 admin.site.register(Holiday, HolidayAdmin)
