@@ -116,6 +116,10 @@ def run(workperiod_id):
             if not pdf.err:
                 send_email(employee, result.getvalue())
 
+                # Reset the global context
+                global context
+                context = { }
+
 def send_email(employee, pdf):
     subject = 'Timesheet for %s' % employee
     recipients = []
@@ -155,6 +159,11 @@ def make_pdf(request, payroll_id, employee_id):
 
         if not pdf.err:
             response.write(result.getvalue())
+
+            # Reset the global context
+            global context
+            context = { }
+
             return response
         else:
             return HttpResponse('Error!')
