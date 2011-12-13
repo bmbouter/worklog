@@ -4,6 +4,7 @@ from django.conf.urls.defaults import *
 from django.contrib.auth.decorators import login_required
 
 from worklog.views import ReportView, ChartView, JobDataView
+from timesheet import TimesheetView
 
 DATEMIN = r'(?P<datemin>\d{4}-\d{2}-\d{2})'
 DATEMAX = r'(?P<datemax>\d{4}-\d{2}-\d{2})'
@@ -32,6 +33,7 @@ urlpatterns = patterns('worklog',
 
 urlpatterns += patterns('worklog',
     url(r'^pdf/(?P<payroll_id>\d+)/(?P<employee_id>\d+)/$', 'timesheet.make_pdf', {}, 'make_pdf_url'),
+    url(r'^timesheet/$', login_required(TimesheetView.as_view()), name='timesheet_url'),
     url(r'^report/$', login_required(ReportView.as_view()), name='report_url'),
     url(r'^chart/$', login_required(ChartView.as_view()), name='chart_url'),
     url(r'^chart/job/$', login_required(JobDataView.as_view()), name='job_data_url')

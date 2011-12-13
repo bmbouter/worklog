@@ -1,0 +1,487 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font: 12px Arial, DroidSans, "Helvetica Neue", Helvetica, Arial, Tahoma, sans-serif;
+	color: black;
+	line-height: 1.4em;
+	background-color: #FFF;
+	padding: 0.7em;
+    width: 748px;
+    margin: 10px auto;
+}
+
+p {
+	margin: 1em 0;
+	line-height: 1.5em;
+}
+
+table {
+	width: 100%;
+	font-size: inherit;
+	font: 100%;
+	border-spacing: 0;
+}
+
+table.week {
+	font-size: .8em;
+}
+
+table.week tr {
+	padding-top: 1px;
+	padding-bottom: 1px;
+}
+
+table.week th {
+	border: 0;
+}
+
+table th {
+	border: 1px solid #000;
+	padding-top: 3px;
+}
+
+table td {
+	margin: 0;
+	padding-top: 3px;
+	padding-left: 3px;
+	font-weight: bold;
+	border: 1px solid #000;
+}
+
+tr.daily {
+	border: 0;
+}
+
+tr.daily td {
+	border: 0;
+}
+
+table td.gray {
+	background-color: #CCC;
+}
+
+h2, h3 {
+	margin: 1em 0;
+}
+
+h1,h2,h3,h4,h5,h6 {
+	margin: .5em;
+	border: 0;
+}
+
+h1 {
+	font-size: 170%;
+	border-top: 4px solid #aaa;
+	padding-top: .5em;
+	margin-top: 1.5em;
+}
+
+h1:first-child {
+	margin-top: 0;
+	padding-top: .25em;
+	border-top: none;
+}
+
+h2 {
+	font-size: 150%;
+	margin-top: 1.5em;
+	border-top: 4px solid #e0e0e0;
+	padding-top: .5em;
+}
+
+h3 {
+	margin-top: 1em;
+}
+
+h6 {
+	font-size: .9em;
+}
+
+.hours {
+	margin: .5em;
+	padding: 0;
+	font-weight: bold;
+}
+
+ol {
+	margin: 0 0 1em 1em;
+}
+
+ol li {
+	font-weight: normal;
+}
+</style>
+<title>test.html</title>
+</head>
+<body>
+	<h4 align="center">North Carolina State University - Temporary Employee Time Record</h4>
+	<table style="margin-bottom: 1em">
+		<tbody>
+			<tr>
+				<td class="gray" valign="top">Name</td>
+				<td valign="top">{{ name }}</td>
+				<td class="gray" valign="top">Work Period<br />Beginning</td>
+				<td valign="top">{{ work_beginning }}</td>
+				<td class="gray" valign="top">PRID</td>
+				<td valign="top">{{ prid }}</td>
+				<td class="gray" valign="top">Time Sheet<br />Due Date</td>
+				<td valign="top">{{ due_date }}</td>
+			</tr>
+		</tbody>
+		<tbody>
+			<tr>
+				<td class="gray" valign="top">ID#</td>
+				<td valign="top">{{ id_num }}</td>
+				<td class="gray" valign="top">Work Period<br />Ending</td>
+				<td valign="top">{{ work_ending }}</td>
+				<td class="gray" valign="top">Dept./Box#</td>
+				<td valign="top">{{ dept }}</td>
+				<td class="gray" valign="top">Pay Day</td>
+				<td valign="top">{{ pay_day }}</td>
+			</tr>
+		</tbody>
+	</table>
+	<table class="week">
+		<thead>
+			<tr>
+				<th colspan="2">Saturday {{ satweek1 }}</th>
+				<th colspan="2">Sunday {{ sunweek1 }}</th>
+				<th colspan="2">Monday {{ monweek1 }}</th>
+				<th colspan="2">Tuesday {{ tueweek1 }}</th>
+				<th colspan="2">Wednesday {{ wedweek1 }}</th>
+				<th colspan="2">Thursday {{ thurweek1 }}</th>
+				<th colspan="2">Friday {{ friweek1 }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>In</td>
+				<td>Out</td>
+				<td>In</td>
+				<td>Out</td>
+				<td>In</td>
+				<td>Out</td>
+				<td>In</td>
+				<td>Out</td>
+				<td>In</td>
+				<td>Out</td>
+				<td>In</td>
+				<td>Out</td>
+				<td>In</td>
+				<td>Out</td>
+			</tr>
+		</tbody>
+		<tbody>
+			<tr>
+				<td>{{ satweek1_start }}</td>
+				<td>{{ satweek1_end }}</td>
+				<td>{{ sunweek1_start }}</td>
+				<td>{{ sunweek1_end }}</td>
+				<td>{{ monweek1_start }}</td>
+				<td>{{ monweek1_end }}</td>
+				<td>{{ tueweek1_start}}</td>
+				<td>{{ tueweek1_end }}</td>
+				<td>{{ wedweek1_start }}</td>
+				<td>{{ wedweek1_end }}</td>
+				<td>{{ thurweek1_start }}</td>
+				<td>{{ thurweek1_end }}</td>
+				<td>{{ friweek1_start}}</td>
+				<td>{{ friweek1_end }}</td>
+			</tr>
+			<tr style="color: #FFF">
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+			</tr>
+			<tr style="color: #FFF">
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+			</tr>
+			<tr style="color: #FFF">
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+			</tr>
+			<tr style="color: #FFF">
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+			</tr>
+			<tr style="color: #FFF">
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+			</tr>
+			<tr class="daily">
+				<td colspan="2">Daily Hours: {{ satweek1_daily }}</td>
+				<td colspan="2">Daily Hours: {{ sunweek1_daily }}</td>
+				<td colspan="2">Daily Hours: {{ monweek1_daily }}</td>
+				<td colspan="2">Daily Hours: {{ tueweek1_daily }}</td>
+				<td colspan="2">Daily Hours: {{ wedweek1_daily }}</td>
+				<td colspan="2">Daily Hours: {{ thurweek1_daily }}</td>
+				<td colspan="2">Daily Hours: {{ friweek1_daily }}</td>
+			</tr>
+		</tbody>
+	</table>
+	<h4>Total hours worked for the last week ending: {{ week1_total }}</h4>
+	<table class="week">
+		<thead>
+			<tr>
+				<th colspan="2">Saturday {{ satweek2 }}</th>
+				<th colspan="2">Sunday {{ sunweek2 }}</th>
+				<th colspan="2">Monday {{ monweek2 }}</th>
+				<th colspan="2">Tuesday {{ tueweek2 }}</th>
+				<th colspan="2">Wednesday {{ wedweek2 }}</th>
+				<th colspan="2">Thursday {{ thurweek2 }}</th>
+				<th colspan="2">Friday {{ friweek2 }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>In</td>
+				<td>Out</td>
+				<td>In</td>
+				<td>Out</td>
+				<td>In</td>
+				<td>Out</td>
+				<td>In</td>
+				<td>Out</td>
+				<td>In</td>
+				<td>Out</td>
+				<td>In</td>
+				<td>Out</td>
+				<td>In</td>
+				<td>Out</td>
+			</tr>
+		</tbody>
+		<tbody>
+			<tr>
+				<td>{{ satweek2_start }}</td>
+				<td>{{ satweek2_end }}</td>
+				<td>{{ sunweek2_start }}</td>
+				<td>{{ sunweek2_end }}</td>
+				<td>{{ monweek2_start }}</td>
+				<td>{{ monweek2_end }}</td>
+				<td>{{ tueweek2_start}}</td>
+				<td>{{ tueweek2_end }}</td>
+				<td>{{ wedweek2_start }}</td>
+				<td>{{ wedweek2_end }}</td>
+				<td>{{ thurweek2_start }}</td>
+				<td>{{ thurweek2_end }}</td>
+				<td>{{ friweek2_start}}</td>
+				<td>{{ friweek2_end }}</td>
+			</tr>
+			<tr style="color: #FFF">
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+			</tr>
+			<tr style="color: #FFF">
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+			</tr>
+			<tr style="color: #FFF">
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+			</tr>
+			<tr style="color: #FFF">
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+			</tr>
+			<tr style="color: #FFF">
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+				<td>&nbps;</td>
+			</tr>
+			<tr class="daily">
+				<td colspan="2">Daily Hours: {{ satweek2_daily }}</td>
+				<td colspan="2">Daily Hours: {{ sunweek2_daily }}</td>
+				<td colspan="2">Daily Hours: {{ monweek2_daily }}</td>
+				<td colspan="2">Daily Hours: {{ tueweek2_daily }}</td>
+				<td colspan="2">Daily Hours: {{ wedweek2_daily }}</td>
+				<td colspan="2">Daily Hours: {{ thurweek2_daily }}</td>
+				<td colspan="2">Daily Hours: {{ friweek2_daily }}</td>
+			</tr>
+		</tbody>
+	</table>
+	<h4>Total hours worked for the last week ending: {{ week2_total }}</h4>
+	<h4>Total hours worked: {{ total }}</h4>
+	<table>
+		<thead>
+			<tr>
+				<td class="gray">Hours Worked</td>
+				<td class="gray">Hourly Pay</td>
+				<td class="gray">Record #</td>
+				<td class="gray">Account #<br />(Obj Code)</td>
+				<td class="gray">Project #</td>
+				<td class="gray">Work Against<br />Position #</td>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>{{ total }}</td>
+				<td>10.00</td>
+				<td></td>
+				<td>51450</td>
+				<td>{{ project_num }}</td>
+				<td> </td>
+			</tr>
+			<tr style="color: #FFF">
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+			</tr>
+			<tr>
+				<td colspan="6" style="font-weight: normal">
+					<strong>Signatures</strong><br />
+					Have you worked for any other University department or State government agency during this pay period? ____ yes ____ no<br />
+					If yes, indicate department/agency _______________________<br /><br />
+					I certify that all hours/flat rate amounts have been recorded accurately.<br /><br />
+					____________________________________________ &nbsp;&nbsp;Date: ________________<br />
+					Employee's Signature<br /><br />
+					____________________________________________ &nbsp;&nbsp;Date: ________________<br />
+					Supervisors's Signature
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<p style="margin: .4em 0em 0em 0em; padding: 0; font-size: .85em; font-weight: bold;">Records must be maintained in the department for five years. Do not forward to Payroll. Please make any necessary corrections or changes.</p>
+
+	<h4 align="center">Special Note</h4>
+	<ol>
+		<h6><li>Time-sheets must be turned in by 5:00 p.m. the day after payday or you may not be paid until the following pay date.<br /><strong>Please note:  This time may change due to Payroll deadlines and University Holidays/closings.</strong></li></h6>
+		<h6><li>All partial hours worked must be rounded off to the closest quarter hour.</li></h6>
+		<h6><li>Do not send your time-sheet by courier/campus mail.</li></h6>
+		<h6><li>Use black or blue ink to complete your time-sheet.  Time-sheets in pencil are unacceptable.</li></h6>
+		<h6><li>Time-sheets must be reviewed and signed by you and your supervisor.</li></h6>
+		<h6><li>Time-sheets with missing signatures will not be processed.  You must submit original time-sheets as copies will not be accepted.</li></h6>
+		<h6><li><strong>Any and all errors, scratchouts, etc. must be corrected and initialed by both you and your supervisor.</strong><br />For example: if you make two errors, both errors must be corrected and initialed by both you and your supervisor.</li></h6>
+		<h6><li>This timesheet was generated using Payday, http://www.webtools.ncsu.edu/payday/</li></h6>
+	</ol>
+</body>
+</html>

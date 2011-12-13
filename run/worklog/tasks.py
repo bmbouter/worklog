@@ -32,7 +32,16 @@ URL: %(url)s
 @periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))
 def generate_timesheets():
     if WorkPeriod.objects.filter(due_date=datetime.date.today()).count() > 0:
-        timesheet.run(WorkPeriod.objects.get(due_date=datetime.date.today()).pk)
+        subject = 'Timesheets are due'
+        msg = 'Please visit: %s?date=%s' % (app_settings.WORKLOG_EMAIL_LINK_URLBASE + urlreverse('timesheet_url'), datetime.date.today())
+        recipients = []
+
+        for admin in settings.ADMINS:
+            recipients.append(admin[1])
+
+        django.core.mail.send_mail(subject, msg, '', recipients)
+        
+        #timesheet.run(WorkPeriod.objects.get(due_date=datetime.date.today()).pk)
 
 # Generate at 2 AM daily during the week
 @periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))

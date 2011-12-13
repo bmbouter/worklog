@@ -1,6 +1,7 @@
 import datetime as date
 import ho.pisa as pisa
 import cStringIO as StringIO
+import re
 
 import django.core.mail
 from django.core.mail import EmailMessage
@@ -8,6 +9,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
+from django.views.generic import TemplateView
 
 from worklog.models import WorkItem, BiweeklyEmployee, Holiday, WorkPeriod
 
@@ -15,7 +17,7 @@ days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sun
 days_for_template = ['mon', 'tue', 'wed', 'thur', 'fri', 'sat', 'sun']
 
 context = { }
-template_name = 'worklog/timesheet.html'
+template_name = 'worklog/timesheet_template.html'
 
 # Generate the paysheet data for a given BiweeklyEmployee and WorkPeriod
 # Returns a tuple of two lists where each list is a week in the work period
@@ -102,23 +104,31 @@ def run(workperiod_id):
         work_period = WorkPeriod.objects.get(pk=workperiod_id)
 
         for employee in BiweeklyEmployee.objects.all():
-            weeks = get_hours(employee, work_period)
-            set_header(employee, work_period)
-            set_timesheet_weeks(weeks)
-            set_footer(employee)
+            pdf = get_pdf(employee, work_period)
 
-            template = get_template(template_name)
-            html = template.render(Context(context))
-            result = StringIO.StringIO()
-
-            pdf = pisa.pisaDocument(StringIO.StringIO(html.encode('ISO-8859-1')), dest=result)
-
-            if not pdf.err:
-                send_email(employee, result.getvalue())
+            if pdf is not None:
+                send_email(employee, pdf)
 
                 # Reset the global context
                 global context
                 context = { }
+
+def get_pdf(employee, work_period):
+    weeks = get_hours(employee, work_period)
+    set_header(employee, work_period)
+    set_timesheet_weeks(weeks)
+    set_footer(employee)
+
+    template = get_template(template_name)
+    html = template.render(Context(context))
+    result = StringIO.StringIO()
+
+    pdf = pisa.pisaDocument(StringIO.StringIO(html.encode('ISO-8859-1')), dest=result)
+
+    if not pdf.err:
+        return result.getvalue()
+    else:
+        return None
 
 def send_email(employee, pdf):
     subject = 'Timesheet for %s' % employee
@@ -137,28 +147,64 @@ def send_email(employee, pdf):
 
     email.send()
 
+# View that displays a page of biweekly employees. Timesheets can be
+# requested for individual or all employees
+class TimesheetView(TemplateView):
+    template_name = 'worklog/timesheet.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(TimesheetView, self).get_context_data()
+
+        context['employees'] = BiweeklyEmployee.objects.all()
+        return context;
+
+    def get(self, request, *args, **kwargs):
+        if 'date' in request.GET:
+            regex = re.compile('\d{4}-\d{2}-\d{2}')
+
+            if not regex.match(request.GET['date']):
+                context = {'error': 'Please provide a valid date'}
+                return super(TimesheetView, self).render_to_response(context)
+            
+            date = request.GET['date']
+            
+            context = self.get_context_data(**kwargs)
+            context['date'] = date
+
+            return super(TimesheetView, self).render_to_response(context)
+        else:
+            context = {'error': 'Please provide a valid date'}
+            return super(TimesheetView, self).render_to_response(context)
+    
+    def post(self, request, *args, **kwargs):
+        due_date = date.datetime.strptime(request.POST['date'], '%Y-%m-%d').date()
+
+        work_period = WorkPeriod.objects.get(due_date=due_date)
+        employee = BiweeklyEmployee.objects.get(pk=request.POST['employee_id'])
+        pdf = get_pdf(employee, work_period)
+
+        send_email(employee, pdf)
+
+        context = self.get_context_data(**kwargs)
+        context['success'] = 'Email with timesheet was sent'
+        context['date'] = request.POST['date']
+
+        return super(TimesheetView, self).render_to_response(context)
+
+
 # View to generate a PDF for a given employee and work period
 def make_pdf(request, payroll_id, employee_id):
     if WorkPeriod.objects.filter(pk=payroll_id).count() > 0:
         employee = BiweeklyEmployee.objects.get(pk=employee_id)
         work_period = WorkPeriod.objects.get(pk=payroll_id)
 
-        weeks = get_hours(employee, work_period)
-        set_header(employee, work_period)
-        set_timesheet_weeks(weeks)
-        set_footer(employee)
+        pdf = get_pdf(employee, work_period)
 
         response = HttpResponse(mimetype='application/pdf')
         response['Content-Disposition'] = 'filename=timesheet.pdf'
 
-        template = get_template(template_name)
-        html = template.render(Context(context))
-        result = StringIO.StringIO()
-
-        pdf = pisa.pisaDocument(StringIO.StringIO(html.encode('ISO-8859-1')), dest=result)
-
-        if not pdf.err:
-            response.write(result.getvalue())
+        if pdf is not None:
+            response.write(pdf)
 
             # Reset the global context
             global context
