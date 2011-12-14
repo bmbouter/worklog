@@ -1,6 +1,12 @@
 from django.conf import settings
-from celery.decorators import task, periodic_task
-from celery.task.schedules import crontab
+
+try:
+    from celery.task import task, periodic_task
+    from celery.schedules import crontab
+except ImportError:
+    from celery.decorators import task, periodic_task
+    from celery.task.schedules import crontab
+
 from celery.registry import TaskRegistry
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
