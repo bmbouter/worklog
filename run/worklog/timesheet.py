@@ -98,6 +98,8 @@ def set_header(employee, work_period):
 
 def set_footer(employee):
     context['project_num'] = employee.project_num
+    context['obj_code'] = employee.obj_code
+    context['hourly_pay'] = employee.hourly_pay
 
 def run(workperiod_id):
     if WorkPeriod.objects.filter(pk=workperiod_id).count() > 0:
