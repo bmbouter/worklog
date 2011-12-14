@@ -16,7 +16,7 @@ from worklog.models import WorkItem, BiweeklyEmployee, Holiday, WorkPeriod
 days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 days_for_template = ['mon', 'tue', 'wed', 'thur', 'fri', 'sat', 'sun']
 
-context = { }
+context = { } # This shouldnt be global. Will need to be reworked later.
 template_name = 'worklog/timesheet_template.html'
 
 # Generate the paysheet data for a given BiweeklyEmployee and WorkPeriod
@@ -126,6 +126,10 @@ def get_pdf(employee, work_period):
     pdf = pisa.pisaDocument(StringIO.StringIO(html.encode('ISO-8859-1')), dest=result)
 
     if not pdf.err:
+        # Reset the global context
+        global context
+        context = { }
+
         return result.getvalue()
     else:
         return None
