@@ -203,7 +203,7 @@ def send_reminder_emails():
     datatuples = ()  # one tuple for each email to send... contains subj, msg, recipients, etc...
     date = datetime.date.today()
     for user in User.objects.all():
-        if not user.email: continue
+        if not user.email or not user.is_active: continue
         # get all workitems for 'user' that were submitted today
         items = WorkItem.objects.filter(user=user.pk,date=date)
         if not items:
