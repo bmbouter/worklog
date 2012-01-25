@@ -20,10 +20,18 @@ def mark_not_invoiced(modeladmin, request, queryset):
     queryset.update(invoiced=False)
 mark_not_invoiced.short_description = "Mark selected work items as not invoiced."
 
+def mark_invoiceable(modeladmin, request, queryset):
+    queryset.update(do_not_invoice=False)
+mark_invoiceable.short_description = "Unmark selected items as 'Do Not Invoice.'"
+
+def mark_not_invoiceable(modeladmin, request, queryset):
+    queryset.update(do_not_invoice=True)
+mark_not_invoiceable.short_description = "Mark selected items as 'Do Not Invoice.'"
+
 class WorkItemAdmin(admin.ModelAdmin):
     list_display = ('user','date','hours','text','job','invoiced','do_not_invoice')
     list_filter = ('user','date','job', 'invoiced','do_not_invoice')
-    actions = [mark_invoiced, mark_not_invoiced]
+    actions = [mark_invoiced, mark_not_invoiced, mark_invoiceable, mark_not_invoiceable]
  
     def changelist_view(self, request, extra_context=None):
         # Look for 'export_as_csv' in the HTTP Request header.  If it is found, 
@@ -88,7 +96,9 @@ class FundingInline(admin.StackedInline):
     model = Funding
 
 class JobAdmin(admin.ModelAdmin):
-    list_display = ('name','open_date','close_date')
+    list_display = ('name','open_date','close_date','do_not_invoice')
+    actions = [mark_invoiceable, mark_not_invoiceable]
+
     inlines = [
         BillingScheduleInline,
         FundingInline,

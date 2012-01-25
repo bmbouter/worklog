@@ -41,6 +41,7 @@ class Job(models.Model):
     # if end_date==None, the Job is still open
     open_date = models.DateField()
     close_date = models.DateField(null=True, blank=True)
+    do_not_invoice = models.BooleanField(default=False)
     
     def __unicode__(self):
         return self.name
