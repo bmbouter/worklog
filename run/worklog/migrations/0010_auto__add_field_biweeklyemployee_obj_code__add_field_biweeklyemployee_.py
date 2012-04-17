@@ -12,7 +12,7 @@ class Migration(SchemaMigration):
         db.add_column('worklog_biweeklyemployee', 'obj_code', self.gf('django.db.models.fields.CharField')(default=203043, max_length=255), keep_default=False)
 
         # Adding field 'BiweeklyEmployee.hourly_pay'
-        db.add_column('worklog_biweeklyemployee', 'hourly_pay', self.gf('django.db.models.fields.DecimalField')(default=10.0, max_digits=5, decimal_places=2), keep_default=False)
+        db.add_column('worklog_biweeklyemployee', 'hourly_pay', self.gf('django.db.models.fields.DecimalField')(default="10.0", max_digits=5, decimal_places=2), keep_default=False)
 
 
     def backwards(self, orm):
