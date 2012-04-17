@@ -8,3 +8,4 @@ pylint
 xhtml2pdf
 pisa
 south
+celery-with-redis
