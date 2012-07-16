@@ -7,7 +7,6 @@ except ImportError:
     from celery.decorators import task, periodic_task
     from celery.task.schedules import crontab
 
-from celery.registry import TaskRegistry
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse as urlreverse
