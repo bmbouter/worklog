@@ -10,6 +10,8 @@
     color: #FF0000;
   }
 </style>
+<link href="{{STATIC_URL}}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" href="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
 </head>
 
 <body>
@@ -30,8 +32,8 @@
       {% csrf_token %}
       {{ form }}
       <tr>
-      <td><input type="submit" name="submit_and_exit" value="Submit and Exit" /></td>
-      <td><input type="submit" name="submit_and_add_another" value="Submit and Add Another" /></td>
+      <td><input type="submit" class="btn" name="submit_and_exit" value="Submit and Exit" /></td>
+      <td><input type="submit" class="btn" name="submit_and_add_another" value="Submit and Add Another" /></td>
       </tr>
     </table>
   </form>
