@@ -79,6 +79,7 @@ Invoices can be generated for certain jobs using the amount of logged hours from
 ### Generating Time Sheets (NCSU Specific) ###
 
 Time sheets are generated for bi-weekly employees only. On the night that a time sheet is due, an email will be sent to the site administrators informing them that this is the case. The email will contain a URL which will allow admins to send time sheets to specific employees or to all employees at once.   
+
 **NOTE: Bi-weekly employees must be configured for this to work. **   
 **NOTE: This only works once Work Periods have been added to the admin interface. **
 
