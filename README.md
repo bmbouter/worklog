@@ -51,7 +51,7 @@ Add certain dates as holidays.  Work items can still be entered on holidays, but
 
 Automatically send all active users a reminder to log their hours if they haven't done so already that particular day. These emails are sent daily but can be customized.   
 
-__*NOTE: A user must be 'active' to recieve reminder emails. *__
+__NOTE: A user must be 'active' to recieve reminder emails.__
 
 #### Remind Email Options ####
 
@@ -70,7 +70,7 @@ The time and days to clear reminder records from the database. E.g. 7pm during e
 WORKLOG_CLEAR_REMINDERS_HOUR = 19
 WORKLOG_CLEAR_REMINDERS_DAYSOFWEEK = weekdays
 
-__*NOTE: For more information about formatting and periodic tasks, visit http://packages.python.org/celery/userguide/periodic-tasks.html *__
+__NOTE: For more information about formatting and periodic tasks, visit http://packages.python.org/celery/userguide/periodic-tasks.html__
 
 ### Invoicing ###
 
@@ -80,8 +80,8 @@ Invoices can be generated for certain jobs using the amount of logged hours from
 
 Time sheets are generated for bi-weekly employees only. On the night that a time sheet is due, an email will be sent to the site administrators informing them that this is the case. The email will contain a URL which will allow admins to send time sheets to specific employees or to all employees at once.   
 
-__*NOTE: Bi-weekly employees must be configured for this to work. *__  
-__*NOTE: This only works once Work Periods have been added to the admin interface. *__
+__NOTE: Bi-weekly employees must be configured for this to work.__  
+__NOTE: This only works once Work Periods have been added to the admin interface.__
 
 ## To Log Hours ##
 
