@@ -10,7 +10,7 @@ Worklog is a Django-based, hourly work logging web application that supports wor
 
 #### Site URL ####
 
-In your settings.py file, you must have the following parameter defined as the URL the site is hosted at. The following would be for your local dev environment.
+In your settings.py file, you must have the following parameter defined as the URL the site is hosted at. The following would be for your local dev environment. This must be fully qualified and it must not include a closing slash.
 WORKLOG_REMINDER_EMAIL_LINK_URLBASE = 'http://127.0.0.1:8000'
 
 #### Site Admins ####
