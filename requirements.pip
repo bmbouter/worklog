@@ -4,3 +4,4 @@ django-celery==3.0.1
 xhtml2pdf
 pisa
 south
+gunicorn
