@@ -52,8 +52,6 @@ def validate_reminder_id(request, reminder_id):
     date = rems[0].date
     return (rems[0],date)
 
-
-@login_required
 def createWorkItem(request, reminder_id=None):
     try:
         reminder,date = validate_reminder_id(request, reminder_id)
@@ -103,8 +101,6 @@ def createWorkItem(request, reminder_id=None):
 def make_month_range(d):
     # take a date, return a tuple of two dates.  The day in the second date is the last day in that month.
     return (d, d.replace(day=calendar.monthrange(d.year, d.month)[1]))
-    
-
     
 class WorkViewMenu(object):
     class MenuItem(object):
@@ -272,7 +268,6 @@ class WorkViewer(object):
         links = [alllink] + links
         self.menu.submenus.append(WorkViewMenu.SubMenu("Job",links))
     
-
 def viewWork(request, username=None, datemin=None, datemax=None):
     if datemin=='today':  datemin = datetime.date.today()
     if datemax=='today':  datemax = datetime.date.today()

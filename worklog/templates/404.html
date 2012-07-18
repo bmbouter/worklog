@@ -1,0 +1,13 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrastyle %}
+<link href="{{STATIC_URL}}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" href="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class='hero'>
+	<h1>Error</h1>
+	<p>Page not found.</p>
+</div>
+{% endblock %}

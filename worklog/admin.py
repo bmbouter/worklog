@@ -58,7 +58,7 @@ class WorkItemAdmin(admin.ModelAdmin):
             
             # see django/contrib/admin/views/main.py  for ChangeList class.
             cl = ChangeList(request, self.model, self.list_display, self.list_display_links, self.list_filter,
-                self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self.list_editable, self) 
+                self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self.list_max_show_all, self.list_editable, self) 
                 
             header = list(s[0] for s in csvfields)
             rows = [header]
@@ -68,7 +68,7 @@ class WorkItemAdmin(admin.ModelAdmin):
                 rows.append(row)
             
             response = HttpResponse(mimetype='text/csv')
-            response['Content-Disposition'] = 'attachment; filename=somefilename.csv'
+            response['Content-Disposition'] = 'attachment; filename=worklog_export.csv'
             
             writer = csv.writer(response)
             for row in rows:
@@ -82,12 +82,13 @@ class WorkItemAdmin(admin.ModelAdmin):
             
             # see django/contrib/admin/views/main.py  for ChangeList class.
             cl = ChangeList(request, self.model, self.list_display, self.list_display_links, self.list_filter,
-                self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self.list_editable, self) 
-	    if not extra_context:
-		extra_context = cl.get_query_set().aggregate(Sum('hours'))
-            else:
-		extra_context.update(cl.get_query_set().aggregate(Sum('hours')))
-	    return super(WorkItemAdmin,self).changelist_view(request, extra_context)
+                self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self.list_max_show_all, self.list_editable, self)
+        if not extra_context:
+            extra_context = cl.get_query_set(request).aggregate(Sum('hours'))
+        else:
+            extra_context.update(cl.get_query_set(request).aggregate(Sum('hours')))
+
+        return super(WorkItemAdmin,self).changelist_view(request, extra_context)
 
 class BillingScheduleInline(admin.StackedInline):
     model = BillingSchedule

@@ -1,0 +1,11 @@
+{% extends "admin/base_site.html" %}
+
+<link href="{{STATIC_URL}}bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" href="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
+
+{% block content %}
+<div class='hero'>
+	<h1>Server Error</h1>
+	<p>This is our fault, not yours. Please try again.</p>
+</div>
+{% endblock %}

@@ -4,15 +4,8 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Example:
-
-    # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
-    # to INSTALLED_APPS to enable admin documentation:
-    # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
     (r'^admin/', include(admin.site.urls)),
-
-    
+    (r'^accounts/login/$', 'django.contrib.auth.views.login', {'template_name': 'worklog/login.html'}),
     (r'^worklog/', include('worklog.urls')),
     (r'^$', include(admin.site.urls)),
 )
