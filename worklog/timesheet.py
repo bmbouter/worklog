@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
 from django.views.generic import TemplateView
+from django.shortcuts import get_object_or_404
 
 from worklog.models import WorkItem, BiweeklyEmployee, Holiday, WorkPeriod
 
@@ -174,7 +175,7 @@ class TimesheetView(TemplateView):
     
     def post(self, request, *args, **kwargs):
         due_date = date.datetime.strptime(request.POST['date'], '%Y-%m-%d').date()
-        work_period = WorkPeriod.objects.get(due_date=due_date)
+        work_period = get_object_or_404(WorkPeriod, due_date=due_date)
         context = self.get_context_data(**kwargs)
 
         if 'all_employees' in request.POST:
