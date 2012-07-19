@@ -87,3 +87,13 @@ __NOTE: This only works once Work Periods have been added to the admin interface
 
 Once a user is logged in, they must go to the following URL: 'worklog/add/'
 There, a user will enter the amount of hours worked, select a 'job' from the dropdown and explain in a few words what was worked on specifically. From there you can either exit the form or add another job for the day. Note that this form **only** logs hours for the current day's date.
+
+## Time Zone Settings ##
+
+All times will be in UTC unless the following is placed in your settings.py file:
+CELERY_ENABLE_UTC = True
+
+It is also recommended to include the following in the settings.py file:
+CELERY_TIMEZONE = 'America/New_York'
+
+Read more: http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#timezones
