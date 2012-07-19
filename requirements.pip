@@ -5,3 +5,4 @@ xhtml2pdf
 pisa
 south
 gunicorn
+pytz
