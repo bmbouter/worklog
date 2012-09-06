@@ -6,3 +6,4 @@ pisa
 south
 gunicorn
 pytz
+flake8
