@@ -32,6 +32,8 @@ class WorkItemAdmin(admin.ModelAdmin):
     list_display = ('user','date','hours','text','job','invoiced','do_not_invoice')
     list_filter = ('user','date','job', 'invoiced','do_not_invoice')
     actions = [mark_invoiced, mark_not_invoiced, mark_invoiceable, mark_not_invoiceable]
+    #sort the items by time in descending order 
+    ordering = ['-date']    
  
     def changelist_view(self, request, extra_context=None):
         # Look for 'export_as_csv' in the HTTP Request header.  If it is found, 
