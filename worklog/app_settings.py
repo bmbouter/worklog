@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.sites.models import Site
 
 # Do not change the defaults in this file.  To modify the settings for your own 
 # deployment, define the setting (with "WORKLOG_" prefix) in your project's 
@@ -21,4 +22,5 @@ SEND_REMINDERS_HOUR = getattr(settings, 'WORKLOG_SEND_REMINDERS_HOUR', 18)
 SEND_REMINDERS_DAYSOFWEEK = days_of_week_mapper[getattr(settings, 'WORKLOG_SEND_REMINDERS_DAYSOFWEEK', 'weekdays')]
 
 ##EMAIL_LINK_URLBASE = getattr(settings, 'WORKLOG_EMAIL_LINK_URLBASE', "http://")
-WORKLOG_EMAIL_LINK_URLBASE = settings.WORKLOG_REMINDER_EMAIL_LINK_URLBASE
+#Retrieving site URL
+WORKLOG_EMAIL_LINK_URLBASE = Site.objects.get_current().domain 
