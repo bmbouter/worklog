@@ -22,5 +22,5 @@ class WorkItemForm(Form):
         else:
             queryset = Job.get_jobs_open_on(datetime.date.today())
         
+        queryset = queryset.order_by('name')
         self.fields["job"].queryset = queryset
-
