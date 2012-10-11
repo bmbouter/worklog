@@ -22,5 +22,4 @@ SEND_REMINDERS_HOUR = getattr(settings, 'WORKLOG_SEND_REMINDERS_HOUR', 18)
 SEND_REMINDERS_DAYSOFWEEK = days_of_week_mapper[getattr(settings, 'WORKLOG_SEND_REMINDERS_DAYSOFWEEK', 'weekdays')]
 
 ##EMAIL_LINK_URLBASE = getattr(settings, 'WORKLOG_EMAIL_LINK_URLBASE', "http://")
-#Retrieving site URL
 WORKLOG_EMAIL_LINK_URLBASE = Site.objects.get_current().domain 
