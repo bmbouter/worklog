@@ -42,7 +42,9 @@ class Job(models.Model):
     open_date = models.DateField()
     close_date = models.DateField(null=True, blank=True)
     do_not_invoice = models.BooleanField(default=False)
-    
+    users = models.ManyToManyField(User, null=True, blank=True)
+    available_all_users = models.BooleanField(default=False)
+
     def __unicode__(self):
         return self.name
     
@@ -86,6 +88,15 @@ class WorkItem(models.Model):
     invoiced.is_invoiced_filter = True    
     def __str__(self):
         return '%s on %s work %d hours on %s' % (self.user, self.date, self.hours, self.text)
+
+    def save(self, *args, **kwargs):
+        if(not self.job.available_all_users):
+            if(not self.job.users.filter(id=self.user.id).exists()):
+                return         
+        super(WorkItem, self).save(*args, **kwargs) 
+
+
+
 
 
 class WorkLogReminder(models.Model):
