@@ -39,8 +39,9 @@ def generate_timesheets():
 
         for admin in settings.ADMINS:
             recipients.append(admin[1])
-
-        django.core.mail.send_mail(subject, msg, '', recipients)
+        
+        from_email = app_settings.WORKLOG_EMAIL_FROM_ADDRESS
+        django.core.mail.send_mail(subject, msg, from_email, recipients)
         
         #timesheet.run(WorkPeriod.objects.get(due_date=datetime.date.today()).pk)
 
@@ -151,8 +152,9 @@ def generate_invoice(default_date=None):
         
         for admin in settings.ADMINS:
             recipients.append(admin[1])
-
-        django.core.mail.send_mail(sub, msg, '', recipients)
+        
+        from_email = app_settings.WORKLOG_EMAIL_FROM_ADDRESS
+        django.core.mail.send_mail(sub, msg, from_email, recipients)
 
 # Generate invoices at 2 AM daily if they are needed
 @periodic_task(run_every=crontab(hour=2, minute=0, day_of_week=[0,1,2,3,4,5,6]))
@@ -167,7 +169,9 @@ def generate_invoice_email():
         recipients = []
         for admin in settings.ADMINS:
             recipients.append(admin[1])
-        django.core.mail.send_mail(sub, msg, '', recipients)
+	     
+        from_email = app_settings.WORKLOG_EMAIL_FROM_ADDRESS
+        django.core.mail.send_mail(sub, msg, from_email, recipients)
 
 def compose_reminder_email(email_address, id, date):
     subj = "Remember to Submit Today's Worklog (%s)"%str(date)
@@ -175,7 +179,7 @@ def compose_reminder_email(email_address, id, date):
     expiredate =    date + datetime.timedelta(days=expire_days)
     url =           create_reminder_url(id)
     msg = email_msg%{'url': url, 'expiredate': str(expiredate), 'date': str(date)}
-    from_email = ""
+    from_email = app_settings.WORKLOG_EMAIL_FROM_ADDRESS
     recipients = [email_address]
 
     return (subj, msg, from_email, recipients)
