@@ -61,7 +61,7 @@ def createWorkItem(request, reminder_id=None):
         return resp
     
     if request.method == 'POST': # If the form has been submitted...
-        form = WorkItemForm(request.POST, reminder=reminder)
+        form = WorkItemForm(request.POST, reminder=reminder, logged_in_user=request.user)
         if form.is_valid():
             # get form data
             hours = form.cleaned_data['hours']
@@ -79,7 +79,7 @@ def createWorkItem(request, reminder_id=None):
                 else:
                     return HttpResponseRedirect('/worklog/view/%s/%s_%s/' % ( request.user.username, date, date))
     else:
-        form = WorkItemForm(reminder=reminder) # An unbound form
+        form = WorkItemForm(reminder=reminder, logged_in_user=request.user) # An unbound form
         
     items = WorkItem.objects.filter(date=date, user=request.user)
     rawitems = list(tuple(_itercolumns(item)) for item in items)

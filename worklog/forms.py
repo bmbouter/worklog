@@ -1,6 +1,7 @@
 from django.forms import ModelForm, Select, Form, HiddenInput, Textarea
 from django import forms
 from worklog.models import WorkItem, Job 
+from django.db.models import Q
 
 import datetime
 
@@ -15,6 +16,7 @@ class WorkItemForm(Form):
 
     def __init__(self, *args, **kwargs):
         reminder = kwargs.pop("reminder")
+        user = kwargs.pop("logged_in_user");
         super(WorkItemForm,self).__init__(*args,**kwargs)
         
         if reminder:
@@ -22,5 +24,6 @@ class WorkItemForm(Form):
         else:
             queryset = Job.get_jobs_open_on(datetime.date.today())
         
+        queryset = queryset.filter(Q(available_all_users=True)|Q(users__id=user.id)).distinct()
         queryset = queryset.order_by('name')
         self.fields["job"].queryset = queryset
