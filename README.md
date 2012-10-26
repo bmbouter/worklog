@@ -46,6 +46,10 @@ Create new jobs for employees to log hours into. Each job can be allocated a cer
 
 Add certain dates as holidays.  Work items can still be entered on holidays, but bi-weekly timesheets will not include those work items.  A note is shown on the work item entry form at the top indicating that day is a holiday.
 
+### From Email address ###
+All emails are sent from the email address configured in settings.py through DEFAULT_FROM_EMAIL
+E.g: DEFAULT_FROM_EMAIL = '"Friday Institute Worklog" <fi-worklog@ncsu.edu>'
+
 ### Reminder Emails ###
 
 Automatically send all active users a reminder to log their hours if they haven't done so already that particular day. These emails are sent daily but can be customized.   
