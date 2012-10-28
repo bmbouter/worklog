@@ -40,7 +40,7 @@ If you do not provide the start and end date, the data will start at the first a
 
 ### Job Creation with Time Allocation ###
 
-Create new jobs for employees to log hours into. Each job can be allocated a certain number of hours which will produce very nice burn rate charts (see above.). Each job can be associated with one or more users. A user can create work items only for the jobs that he/she is part of.
+Create new jobs for employees to log hours into. Each job can be allocated a certain number of hours which will produce very nice burn rate charts (see above.). Each job can be associated with one or more users. By default a job is associated with all users. This can be disabled by deselecting the "Available all users" check box and select only some users. A user can create work items only for the jobs that he/she is part of.
 
 ### Holidays ###
 
