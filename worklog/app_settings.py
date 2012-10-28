@@ -21,7 +21,9 @@ CLEAR_REMINDERS_DAYSOFWEEK = days_of_week_mapper[getattr(settings, 'WORKLOG_CLEA
 SEND_REMINDERS_HOUR = getattr(settings, 'WORKLOG_SEND_REMINDERS_HOUR', 18)
 SEND_REMINDERS_DAYSOFWEEK = days_of_week_mapper[getattr(settings, 'WORKLOG_SEND_REMINDERS_DAYSOFWEEK', 'weekdays')]
 
-##EMAIL_LINK_URLBASE = getattr(settings, 'WORKLOG_EMAIL_LINK_URLBASE', "http://")
-WORKLOG_EMAIL_LINK_URLBASE = Site.objects.get_current().domain
-
 WORKLOG_EMAIL_FROM_ADDRESS = getattr(settings, 'DEFAULT_FROM_EMAIL', '"Friday Institute Worklog" <fi-worklog@ncsu.edu>')
+
+def get_worklog_email_link_urlbase():
+    Site.objects.clear_cache()       
+    return Site.objects.get_current().domain
+     	
