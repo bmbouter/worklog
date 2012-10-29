@@ -23,7 +23,3 @@ SEND_REMINDERS_DAYSOFWEEK = days_of_week_mapper[getattr(settings, 'WORKLOG_SEND_
 
 WORKLOG_EMAIL_FROM_ADDRESS = getattr(settings, 'DEFAULT_FROM_EMAIL', '"Friday Institute Worklog" <fi-worklog@ncsu.edu>')
 
-def get_worklog_email_link_urlbase():
-    Site.objects.clear_cache()       
-    return Site.objects.get_current().domain
-     	

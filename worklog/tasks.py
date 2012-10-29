@@ -34,7 +34,7 @@ URL: %(url)s
 def generate_timesheets():
     if WorkPeriod.objects.filter(due_date=datetime.date.today()).count() > 0:
         subject = 'Timesheets are due'
-        msg = 'Please visit: %s?date=%s' % (app_settings.get_worklog_email_link_urlbase() + urlreverse('timesheet_url'), datetime.date.today())
+        msg = 'Please visit: %s?date=%s' % (Site.objects.get_current().domain + urlreverse('timesheet_url'), datetime.date.today())
         recipients = []
 
         for admin in settings.ADMINS:
@@ -146,7 +146,7 @@ def generate_invoice(default_date=None):
         
         msg = ('\n\n').join(email_msgs)
         
-        msg += '\n\nReport tools: %s?date=%s' % (app_settings.get_worklog_email_link_urlbase() + urlreverse('report_url'), default_date)
+        msg += '\n\nReport tools: %s?date=%s' % (Site.objects.get_current().domain + urlreverse('report_url'), default_date)
         
         recipients = []
         
@@ -165,7 +165,7 @@ def generate_invoice_email():
     # continue only if we there are jobs to bill
     if billable_jobs:
         sub = 'Invoice'
-        msg = 'Report tools: %s?date=%s' % (app_settings.get_worklog_email_link_urlbase() + urlreverse('report_url'), default_date)
+        msg = 'Report tools: %s?date=%s' % (Site.objects.get_current().domain + urlreverse('report_url'), default_date)
         recipients = []
         for admin in settings.ADMINS:
             recipients.append(admin[1])
@@ -186,7 +186,7 @@ def compose_reminder_email(email_address, id, date):
     
 def create_reminder_url(id): 
     path = urlreverse('worklog-reminder-view', kwargs={'reminder_id':id}, current_app='worklog')
-    return app_settings.get_worklog_email_link_urlbase() + path
+    return app_settings.Site.objects.get_current().domain + path
 
 def save_reminder_record(user,id, date):
     reminder = WorkLogReminder(reminder_id=id, user=user, date=date)
