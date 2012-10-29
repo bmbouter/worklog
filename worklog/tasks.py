@@ -40,7 +40,7 @@ def generate_timesheets():
         for admin in settings.ADMINS:
             recipients.append(admin[1])
         
-        from_email = app_settings.WORKLOG_EMAIL_FROM_ADDRESS
+        from_email = settings.DEFAULT_FROM_EMAIL
         django.core.mail.send_mail(subject, msg, from_email, recipients)
         
         #timesheet.run(WorkPeriod.objects.get(due_date=datetime.date.today()).pk)
@@ -153,7 +153,7 @@ def generate_invoice(default_date=None):
         for admin in settings.ADMINS:
             recipients.append(admin[1])
         
-        from_email = app_settings.WORKLOG_EMAIL_FROM_ADDRESS
+        from_email = settings.DEFAULT_FROM_EMAIL
         django.core.mail.send_mail(sub, msg, from_email, recipients)
 
 # Generate invoices at 2 AM daily if they are needed
@@ -170,7 +170,7 @@ def generate_invoice_email():
         for admin in settings.ADMINS:
             recipients.append(admin[1])
 	     
-        from_email = app_settings.WORKLOG_EMAIL_FROM_ADDRESS
+        from_email = settings.DEFAULT_FROM_EMAIL
         django.core.mail.send_mail(sub, msg, from_email, recipients)
 
 def compose_reminder_email(email_address, id, date):
@@ -179,7 +179,7 @@ def compose_reminder_email(email_address, id, date):
     expiredate =    date + datetime.timedelta(days=expire_days)
     url =           create_reminder_url(id)
     msg = email_msg%{'url': url, 'expiredate': str(expiredate), 'date': str(date)}
-    from_email = app_settings.WORKLOG_EMAIL_FROM_ADDRESS
+    from_email = settings.DEFAULT_FROM_EMAIL
     recipients = [email_address]
 
     return (subj, msg, from_email, recipients)

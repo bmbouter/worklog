@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.contrib.sites.models import Site
 
 # Do not change the defaults in this file.  To modify the settings for your own 
 # deployment, define the setting (with "WORKLOG_" prefix) in your project's 
@@ -20,6 +19,4 @@ CLEAR_REMINDERS_DAYSOFWEEK = days_of_week_mapper[getattr(settings, 'WORKLOG_CLEA
 # The time and says to send reminder emails.
 SEND_REMINDERS_HOUR = getattr(settings, 'WORKLOG_SEND_REMINDERS_HOUR', 18)
 SEND_REMINDERS_DAYSOFWEEK = days_of_week_mapper[getattr(settings, 'WORKLOG_SEND_REMINDERS_DAYSOFWEEK', 'weekdays')]
-
-WORKLOG_EMAIL_FROM_ADDRESS = getattr(settings, 'DEFAULT_FROM_EMAIL', '"Friday Institute Worklog" <fi-worklog@ncsu.edu>')
 

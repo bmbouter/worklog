@@ -48,7 +48,8 @@ Add certain dates as holidays.  Work items can still be entered on holidays, but
 
 ### From Email address ###
 All emails are sent from the email address configured in settings.py through DEFAULT_FROM_EMAIL
-E.g: DEFAULT_FROM_EMAIL = '"Friday Institute Worklog" <fi-worklog@ncsu.edu>'
+
+```DEFAULT_FROM_EMAIL = '"Friday Institute Worklog" <fi-worklog@ncsu.edu>'```
 
 ### Reminder Emails ###
 
