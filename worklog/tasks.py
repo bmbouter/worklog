@@ -186,7 +186,7 @@ def compose_reminder_email(email_address, id, date):
     
 def create_reminder_url(id): 
     path = urlreverse('worklog-reminder-view', kwargs={'reminder_id':id}, current_app='worklog')
-    return app_settings.Site.objects.get_current().domain + path
+    return Site.objects.get_current().domain + path
 
 def save_reminder_record(user,id, date):
     reminder = WorkLogReminder(reminder_id=id, user=user, date=date)

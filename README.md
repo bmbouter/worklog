@@ -44,7 +44,7 @@ Create new jobs for employees to log hours into. Each job can be allocated a cer
 
 ### Holidays ###
 
-Add certain dates as holidays.  Work items can still be entered on holidays, but bi-weekly timesheets will not include those work items.  A note is shown on the work item entry form at the top indicating that day is a holiday.
+Add certain dates as holidays.  Work items can still be entered on holidays, but bi-weekly timesheets will not include those work items.  For bi-weekly employees, a note is shown on the work item entry form indicating that day is a holiday.
 
 ### From Email address ###
 All emails are sent from the email address configured in settings.py through DEFAULT_FROM_EMAIL
